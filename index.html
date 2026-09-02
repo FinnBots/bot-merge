@@ -28,11 +28,30 @@
     padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
   .wrap{ width:100%; max-width:min(440px, 96vw); height:100%; display:flex; flex-direction:column; gap: clamp(5px, 1.1dvh, 9px); position:relative; }
 
+  .testBanner{ flex:0 0 auto; background:var(--amber); color:#4a2c10; font-weight:700; text-align:center; font-size:12px; padding:5px; border-radius:var(--r-sm); }
+  .testBanner.hidden{ display:none; }
+
   .topbar{ flex:0 0 auto; display:flex; align-items:center; gap:8px; background:var(--card); border-radius:var(--r-lg); padding:9px 13px; box-shadow:var(--shadow-sm); }
   .eyebrow{ font-family:var(--font-display); font-size:clamp(10px,1.2vw,14px); letter-spacing:.5px; color:var(--plum); background:rgba(95,76,87,0.10); padding:6px 10px; border-radius:var(--r-pill); flex:0 0 auto; white-space:nowrap; }
   h1{ font-family:var(--font-display); font-size:clamp(16px,2.5vw,26px); color:var(--ink); flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .icon{ flex:0 0 auto; appearance:none; border:none; cursor:pointer; width:clamp(30px,3vw,38px); height:clamp(30px,3vw,38px); border-radius:50%; background:rgba(95,76,87,0.10); color:var(--plum); font-size:16px; display:flex; align-items:center; justify-content:center; }
   button:focus-visible{ outline:3px solid var(--electric); outline-offset:2px; }
+
+  .modebar{ flex:0 0 auto; display:flex; gap:6px; background:var(--card); border-radius:var(--r-pill); padding:4px; box-shadow:var(--shadow-sm); }
+  .modepill{ flex:1; appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:700; font-size:13px; padding:8px 10px; border-radius:var(--r-pill); background:transparent; color:var(--muted); }
+  .modepill.active{ background:var(--plum); color:#fff; }
+  .modepill:disabled{ opacity:.5; cursor:default; }
+
+  .walletbar{ flex:0 0 auto; background:var(--card); border-radius:var(--r-lg); padding:9px 12px; box-shadow:var(--shadow-sm); display:flex; flex-direction:column; gap:6px; }
+  .walletbar.hidden{ display:none; }
+  .walletrow{ display:flex; align-items:center; gap:8px; }
+  .walletrow .lbl{ font-weight:600; font-size:12.5px; flex:1; }
+  .connect-btn{ appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:600; font-size:13px; background:var(--plum); color:#fff; padding:8px 14px; border-radius:var(--r-sm); }
+  .connect-btn:disabled{ opacity:.65; cursor:default; }
+  .wallet-status{ font-size:12.5px; color:var(--muted); }
+  .wallet-status.hidden{ display:none; }
+  .wallet-status.ok{ color:var(--ink); } .wallet-status.warn{ color:var(--red); }
+  .wallet-status .addr{ font-family:ui-monospace,monospace; color:var(--plum); }
 
   .timerbar{ flex:0 0 auto; height:10px; background:rgba(95,76,87,0.15); border-radius:var(--r-pill); overflow:hidden; }
   .timerfill{ height:100%; width:100%; background:var(--green); border-radius:var(--r-pill); transition:width .12s linear, background .3s; }
@@ -47,6 +66,7 @@
 
   .boardwrap{ flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-height:0; position:relative; }
   .board{ width:min(100%, 50dvh); aspect-ratio:1; background:var(--plum); border-radius:var(--r-lg); padding:clamp(5px,1.2vw,8px); display:grid; grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(5,1fr); gap:clamp(4px,1vw,7px); box-shadow:var(--shadow-md); touch-action:none; user-select:none; -webkit-user-select:none; }
+  .board.locked{ opacity:.5; pointer-events:none; }
   .cell{ position:relative; background:rgba(255,255,255,0.06); border-radius:var(--r-sm); overflow:hidden; }
   .cell.filled{ box-shadow:inset 0 0 0 2px rgba(255,255,255,0.16); cursor:grab; }
   .cell img, .cell .img-fallback{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; -webkit-user-drag:none; }
@@ -66,6 +86,12 @@
   .combo{ position:absolute; top:6px; left:50%; transform:translateX(-50%); z-index:40; font-family:var(--font-display); font-size:clamp(18px,4vw,30px); color:#fff; background:var(--amber); padding:3px 14px; border-radius:var(--r-pill); box-shadow:var(--shadow-md); opacity:0; }
   .combo.show{ animation:comboPulse .5s var(--smooth); }
   @keyframes comboPulse{ 0%{opacity:0; transform:translateX(-50%) scale(.6);} 40%{opacity:1; transform:translateX(-50%) scale(1.1);} 100%{opacity:1; transform:translateX(-50%) scale(1);} }
+
+  .actions{ flex:0 0 auto; display:flex; gap:8px; }
+  .actions.hidden{ display:none; }
+  .play,.post{ flex:1; appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:700; font-size:15px; padding:12px; border-radius:var(--r-md); box-shadow:var(--shadow-sm); }
+  .play{ background:var(--amber); color:#4a2c10; } .play:disabled{ background:var(--line); color:var(--muted); box-shadow:none; cursor:default; }
+  .post{ background:var(--plum); color:#fff; } .post.hidden,.play.hidden{ display:none; }
 
   .hint{ flex:0 0 auto; text-align:center; font-size:clamp(10px,1.3vw,13px); color:var(--muted); }
   .hint b{ color:var(--ink); }
@@ -90,15 +116,37 @@
   .lb .who{ font-family:var(--font-display); letter-spacing:1px; width:40px; }
   .lb .sc{ margin-left:auto; }
   .lb .me{ box-shadow:inset 0 0 0 2px var(--amber); }
+
+  .sheet{ position:fixed; inset:0; background:rgba(42,34,48,0.6); display:none; align-items:center; justify-content:center; padding:18px; z-index:80; }
+  .sheet.show{ display:flex; }
+  .panel{ width:100%; max-width:340px; background:var(--card); border-radius:var(--r-xl); padding:22px; box-shadow:var(--shadow-lg); text-align:center; }
+  .panel h2{ font-family:var(--font-display); font-size:24px; margin-bottom:8px; }
+  .panel p{ font-size:14px; color:var(--muted); margin-bottom:14px; } .panel p b{ color:var(--ink); }
+  .panel .again{ appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:700; font-size:15px; background:var(--amber); color:#4a2c10; padding:11px 22px; border-radius:var(--r-sm); display:block; width:100%; margin-bottom:8px; }
+  .panel .ghostbtn{ appearance:none; border:1px solid var(--line); cursor:pointer; font-family:var(--font-body); font-weight:600; font-size:14px; background:transparent; color:var(--plum); padding:9px 18px; border-radius:var(--r-sm); display:block; width:100%; }
 </style>
 </head>
 <body>
   <div class="wrap">
+    <div class="testBanner hidden" id="testBanner">🧪 TEST MODE — local validator, fake $OIL. No real value moves.</div>
+
     <div class="topbar">
       <span class="eyebrow">BOT MERGE</span>
-      <h1>Rush</h1>
+      <h1 id="title">Rush</h1>
       <button class="icon" id="mute" type="button" aria-label="Sound">🔊</button>
     </div>
+
+    <div class="modebar" id="modebar" role="tablist" aria-label="Game mode">
+      <button class="modepill active" id="modeFree" type="button" role="tab">Free play</button>
+      <button class="modepill" id="modeRanked" type="button" role="tab">Ranked · 25 OIL</button>
+    </div>
+
+    <section class="walletbar hidden" id="walletbar">
+      <div class="walletrow"><span class="lbl">Ranked — 25 OIL entry · fun leaderboard</span>
+        <button class="connect-btn" id="connectBtn" type="button">Connect</button></div>
+      <div class="wallet-status hidden" id="walletStatus"></div>
+    </section>
+
     <div class="timerbar"><div class="timerfill" id="timerfill"></div></div>
     <div class="stats">
       <div class="stat"><div class="k">Score</div><div class="v" id="score">0</div></div>
@@ -109,7 +157,13 @@
       <div class="board" id="board" role="grid" aria-label="Bot Merge board"></div>
       <div class="combo" id="combo"></div>
     </div>
-    <div class="hint">Drag a Bot onto a <b>matching</b> Bot before the board floods!</div>
+    <div class="hint" id="hint">Drag a Bot onto a <b>matching</b> Bot before the board floods!</div>
+
+    <div class="actions hidden" id="paidActions">
+      <button class="play" id="playBtn" type="button" disabled>Connect wallet to play</button>
+      <button class="post hidden" id="postBtn" type="button">Post score (1 OIL)</button>
+    </div>
+
     <div class="brand">a FinnBots game</div>
 
     <div class="overlay" id="overlay">
@@ -125,9 +179,28 @@
     </div>
   </div>
 
+  <!-- Kid-safety gate: shown BEFORE any wallet code runs -->
+  <div class="sheet" id="confirmSheet"><div class="panel">
+    <h2>Ranked</h2>
+    <p>Ranked costs <b>25 OIL</b> to enter. The leaderboard is a <b>fun ranking</b> — not verified. One entry = one scored run. Bot holders get ×1.5.</p>
+    <button class="again" id="confirmEnter" type="button">Enter Ranked</button>
+    <button class="ghostbtn" id="confirmBack" type="button">Back to Free</button>
+  </div></div>
+
+  <div class="sheet" id="postedSheet"><div class="panel">
+    <h2>Score posted!</h2>
+    <p id="posted-text"></p>
+    <button class="again" id="againBtn" type="button">Play again (25 OIL)</button>
+  </div></div>
+
+<!-- Shared wallet libs (loaded once; the wallet LOGIC stays dead until Paid is chosen) -->
+<script src="phantom-deeplink-libs.min.js?v=20260710b"></script>
+<script src="phantom-mobile.js?v=20260710b"></script>
+<script src="solana-web3.iife.min.js?v=20260710b"></script>
 <script>
 (function(){
   'use strict';
+  // ===== Shared constants (identical to the Free Rush loop) ==================
   var ARWEAVE_BASE='https://arweave.net/_cPSCheRvzVBlZK7QwM-3nXtteMdBbUn-zJhbGRlMmo';
   var LADDER=[106,355,710,940,1150,1620,860,2106,2480,357];
   var CELLS=25, TOTAL=60000, COMBO_WINDOW=1400;
@@ -135,13 +208,14 @@
   function botImageHTML(n){ return '<img src="'+ARWEAVE_BASE+'/'+n+'.png" alt="Bot #'+n+'" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'#'+n+'\',className:\'img-fallback\'}));" />'; }
   var mem={}; var LS={ get:function(k){ try{return localStorage.getItem(k);}catch(e){return (k in mem)?mem[k]:null;} }, set:function(k,v){ try{localStorage.setItem(k,v);}catch(e){mem[k]=v;} } };
 
+  // ===== Rush engine — drives BOTH Free and Paid rounds (wallet-free) ========
+  var mode='free'; // 'free' | 'paid' — set by setMode()
   var boardEl=document.getElementById('board');
   var scoreEl=document.getElementById('score'), timeEl=document.getElementById('time'), topbotEl=document.getElementById('topbot');
   var fillEl=document.getElementById('timerfill'), comboEl=document.getElementById('combo');
   var cells=[], lastVal=new Array(CELLS).fill(-1), board=new Array(CELLS).fill(0);
   var running=false, score=0, combo=0, comboExpire=0, startedAt=0, timeLeft=TOTAL, tickTimer=null, dropTimer=null;
 
-  // build cells once (no full re-render churn)
   for(var i=0;i<CELLS;i++){ var c=document.createElement('div'); c.className='cell'; c.dataset.idx=i; cells.push(c); boardEl.appendChild(c); }
 
   function highest(){ var m=0; for(var i=0;i<CELLS;i++) if(board[i]>m) m=board[i]; return m; }
@@ -181,6 +255,7 @@
   function startRound(){
     ensureAudio();
     board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); score=0; combo=0; timeLeft=TOTAL; running=true;
+    boardEl.classList.remove('locked');
     paintAll(); updateScore(); updateTop();
     document.getElementById('overlay').classList.add('hidden');
     startedAt=Date.now();
@@ -188,8 +263,17 @@
     clearInterval(tickTimer); tickTimer=setInterval(tick,100);
     scheduleDrop();
   }
+  function stopRound(){ running=false; clearInterval(tickTimer); clearTimeout(dropTimer); }
+
   function endRound(reason){
     running=false; clearInterval(tickTimer); clearTimeout(dropTimer); sfxOver();
+    var elapsed=Math.min(TOTAL, Date.now()-startedAt);
+    if(mode==='paid'){
+      boardEl.classList.add('locked');
+      Paid.handleRoundEnd({ score:score, top:highest(), timeMs:elapsed, reason:reason });
+      return;
+    }
+    // --- Free: device-only leaderboard, unchanged ---
     var h=highest();
     var cur=parseInt(LS.get('botmerge_bestscore')||'0',10); var pb=score>cur; if(pb) LS.set('botmerge_bestscore',String(score));
     var ov=document.getElementById('overlay');
@@ -204,7 +288,7 @@
     ov.classList.remove('hidden');
   }
 
-  // ---- Drag to merge ---------------------------------------------------------
+  // ---- Drag to merge (shared) -----------------------------------------------
   var drag=null;
   function idxFromPoint(x,y){ var el=document.elementFromPoint(x,y); if(!el||!el.closest) return -1; var c=el.closest('.cell'); if(!c||!boardEl.contains(c)) return -1; return +c.dataset.idx; }
   function moveGhost(e){ var s=drag.size; drag.ghost.style.left=(e.clientX-s/2)+'px'; drag.ghost.style.top=(e.clientY-s/2)+'px'; }
@@ -254,7 +338,7 @@
   function sfxOver(){ beep(320,0.16,'sawtooth'); setTimeout(function(){beep(200,0.24,'sawtooth');},150); }
   document.getElementById('mute').addEventListener('click', function(){ muted=!muted; this.textContent=muted?'🔇':'🔊'; });
 
-  // ---- Leaderboard -----------------------------------------------------------
+  // ---- Free device leaderboard ----------------------------------------------
   function loadLB(){ try{ return JSON.parse(LS.get('botmerge_lb')||'[]'); }catch(e){ return []; } }
   function saveLB(a){ LS.set('botmerge_lb', JSON.stringify(a.slice(0,10))); }
   function renderLB(hi){ var arr=loadLB(), ol=document.getElementById('lblist'); ol.innerHTML=''; if(!arr.length){ ol.innerHTML='<li style="justify-content:center;">No scores yet!</li>'; return; }
@@ -270,7 +354,262 @@
   document.getElementById('save').addEventListener('click', function(){ if(!this.disabled) saveScore(); });
   document.getElementById('initials').addEventListener('keydown', function(e){ if(e.key==='Enter'){ var b=document.getElementById('save'); if(!b.disabled) saveScore(); } });
 
-  paintAll();
+  // ===========================================================================
+  // ===== Paid / wallet layer — DEAD until Paid is chosen (Paid.init) =========
+  // ===== Rush is real-time and UNREPLAYABLE. The RUSH leaderboard is a fun ===
+  // ===== ranking + an OIL sink. It is NOT verified / provably fair. ==========
+  // ===========================================================================
+  var Paid=(function(){
+    var TEST_MODE = false;   // <-- flip to false ONLY with Founder confirm in this run's output
+    var CFG = TEST_MODE ? {
+      RPC: 'http://127.0.0.1:8899',
+      TOKEN_PROGRAM: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+      MEMO_PROGRAM: 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+      OIL_MINT: 'H97Qcw7ao5yisvE5dRGLKnMhcCsrojFBNxU5ALUJ3SL2',
+      TREASURY: '8tzZzNiGkE2kYXhUSauNEUyVHiaWBt5pBagg7CHKPNBM',
+      TREASURY_TOKEN_ACCOUNT: '7XSE68LH5rekFX9JeyguTsUMmkDm3egCWkSXpnfLAY1J',
+      ENTRY_FEE: 25, POST_FEE: 1, DECIMALS: 2
+    } : {
+      RPC: 'https://finnbots-rpc.mart-kin1000.workers.dev',
+      TOKEN_PROGRAM: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+      MEMO_PROGRAM: 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+      OIL_MINT: 'HrcfXJcFdMoLfbkN5qCTSFrLsAgJNHitmwKc5AyS7xzf',
+      TREASURY: '75WPN3kwYUT5kdPU7V3Fp3LhnxmPC38bsgBCasRQdXMR',
+      TREASURY_TOKEN_ACCOUNT: '2ZBNMLZFfHCuZm9Lfc3b7ut296tRwGtapuXad7zSm1ED',
+      ENTRY_FEE: 25, POST_FEE: 1, DECIMALS: 2
+    };
+    var MEMO_TAG = 'RUSH';
+    var wallet = { pubkey:null, oil:0 };
+    var inited=false, busy=false, entrySig=null, pendingResult=null;
+    var connectBtn, walletStatus, playBtn, postBtn;
+
+    function $(id){ return document.getElementById(id); }
+    function getProvider(){ if(window.phantom&&window.phantom.solana&&window.phantom.solana.isPhantom) return window.phantom.solana; if(window.solana&&window.solana.isPhantom) return window.solana; return null; }
+    function shortAddr(a){ return a.slice(0,4)+'\u2026'+a.slice(-4); }
+    function setStatus(html,cls){ walletStatus.classList.remove('hidden'); walletStatus.className='wallet-status'+(cls?' '+cls:''); walletStatus.innerHTML=html; }
+    function canPlay(){ return !!wallet.pubkey && wallet.oil>=CFG.ENTRY_FEE; }
+    function delay(ms){ return new Promise(function(res){ setTimeout(res,ms); }); }
+
+    // ---- balance ------------------------------------------------------------
+    async function fetchOilBalance(owner){
+      try{ var body=JSON.stringify({ jsonrpc:'2.0', id:'oilbal', method:'getTokenAccountsByOwner', params:[ owner, { mint:CFG.OIL_MINT }, { encoding:'jsonParsed' } ] });
+        var r=await fetch(CFG.RPC,{ method:'POST', headers:{'Content-Type':'application/json'}, body:body }); if(!r.ok) return 0;
+        var j=await r.json(); var accts=j&&j.result&&j.result.value; if(!accts||!accts.length) return 0;
+        var base=0; accts.forEach(function(acc){ try{ base+=Number(acc.account.data.parsed.info.tokenAmount.amount); }catch(e){} });
+        return base/Math.pow(10,CFG.DECIMALS);
+      }catch(e){ return 0; }
+    }
+    async function checkBalance(owner){
+      wallet.oil=await fetchOilBalance(owner);
+      var pfx=TEST_MODE?'\ud83e\uddea TEST MODE \u2014 ':'';
+      if(wallet.oil>=CFG.ENTRY_FEE){ setStatus('Connected as <span class="addr">'+shortAddr(owner)+'</span><br/>'+pfx+'You hold <b>'+wallet.oil.toFixed(2)+'</b> $OIL \u2014 cleared to play.', 'ok');
+        if(!entrySig){ playBtn.disabled=false; playBtn.textContent='Play ('+CFG.ENTRY_FEE+' $OIL)'; } }
+      else { setStatus('Connected as <span class="addr">'+shortAddr(owner)+'</span><br/>'+pfx+'This wallet holds <b>'+wallet.oil.toFixed(2)+'</b> $OIL \u2014 need at least '+CFG.ENTRY_FEE+' to play.', 'warn');
+        playBtn.disabled=true; playBtn.textContent='Need '+CFG.ENTRY_FEE+' $OIL'; }
+    }
+
+    // ---- payment (one signed SPL transfer + memo) ---------------------------
+    var PENDING_KEY='rush_pending_action';
+    function savePending(a){ try{ localStorage.setItem(PENDING_KEY, JSON.stringify(a)); }catch(e){} }
+    function loadPending(){ try{ var v=localStorage.getItem(PENDING_KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
+    function clearPending(){ try{ localStorage.removeItem(PENDING_KEY); }catch(e){} }
+    function PayError(msg){ this.userMessage=msg; }
+    function u64LE(amount){ var out=new Uint8Array(8); var big=BigInt(Math.round(amount)); for(var i=0;i<8;i++){ out[i]=Number(big&0xffn); big>>=8n; } return out; }
+    function buildTransferIx(src,dst,owner,amt){ var data=new Uint8Array(9); data[0]=3; data.set(u64LE(amt),1);
+      return new solanaWeb3.TransactionInstruction({ programId:new solanaWeb3.PublicKey(CFG.TOKEN_PROGRAM),
+        keys:[{pubkey:src,isSigner:false,isWritable:true},{pubkey:dst,isSigner:false,isWritable:true},{pubkey:owner,isSigner:true,isWritable:false}], data:data }); }
+    function buildMemoIx(owner,text){ return new solanaWeb3.TransactionInstruction({ programId:new solanaWeb3.PublicKey(CFG.MEMO_PROGRAM), keys:[{pubkey:owner,isSigner:true,isWritable:false}], data:new TextEncoder().encode(text) }); }
+    async function confirmSignature(connection,signature,timeoutMs){ var start=Date.now();
+      while(Date.now()-start<timeoutMs){ var res=await connection.getSignatureStatuses([signature]); var st=res&&res.value&&res.value[0];
+        if(st){ if(st.err) throw new PayError('The transaction failed on-chain \u2014 no charge was made. Please try again.'); if(st.confirmationStatus==='confirmed'||st.confirmationStatus==='finalized') return true; } await delay(1500); } return false; }
+
+    async function sendPayment(amountOil, memoText, action){
+      var provider=getProvider();
+      var useMobile=!provider && window.PhantomMobile && PhantomMobile.isMobile() && PhantomMobile.hasSession();
+      if(!provider && !useMobile) throw new PayError('Phantom isn\u2019t reachable here \u2014 open this page in your browser, or tap Connect again on mobile.');
+      var ownerPk=new solanaWeb3.PublicKey(wallet.pubkey);
+      var connection=new solanaWeb3.Connection(CFG.RPC,'confirmed');
+      var tokAccts=await connection.getTokenAccountsByOwner(ownerPk,{ mint:new solanaWeb3.PublicKey(CFG.OIL_MINT) });
+      if(!tokAccts.value.length) throw new PayError('No $OIL account found in this wallet.');
+      var sourcePubkey=tokAccts.value[0].pubkey;
+      var balInfo=await connection.getTokenAccountBalance(sourcePubkey);
+      var needBase=Math.round(amountOil*Math.pow(10,CFG.DECIMALS));
+      if(Number(balInfo.value.amount)<needBase) throw new PayError('Not enough liquid $OIL \u2014 need '+amountOil+'.');
+      var destPubkey=new solanaWeb3.PublicKey(CFG.TREASURY_TOKEN_ACCOUNT);
+      var tx=new solanaWeb3.Transaction();
+      tx.add(buildTransferIx(sourcePubkey,destPubkey,ownerPk,needBase), buildMemoIx(ownerPk,memoText));
+      tx.feePayer=ownerPk; var latest=await connection.getLatestBlockhash(); tx.recentBlockhash=latest.blockhash;
+      if(useMobile){
+        var pend={ action:action, owner:wallet.pubkey, marker:'rush_sign' };
+        if(action==='score' && pendingResult){ pend.entrySig=entrySig; pend.score=pendingResult.score; pend.top=pendingResult.top; pend.timeMs=pendingResult.timeMs; }
+        savePending(pend); setStatus('Opening Phantom to approve\u2026');
+        var unsigned=tx.serialize({ requireAllSignatures:false, verifySignatures:false });
+        PhantomMobile.signTransaction(unsigned, window.location.origin+window.location.pathname, 'rush_sign'); return null;
+      }
+      var signed=await provider.signTransaction(tx); setStatus('Sending payment\u2026');
+      var rawSig=await connection.sendRawTransaction(signed.serialize(),{ skipPreflight:false }); setStatus('Payment sent \u2014 waiting for confirmation\u2026');
+      var ok=await confirmSignature(connection,rawSig,30000); if(!ok) throw new PayError('Confirmation is taking longer than expected. Signature: '+rawSig+'. Do not pay again \u2014 check it first.');
+      return rawSig; // base58 on-chain signature
+    }
+
+    // ---- score memo (RUSH — no seed, no move-log, no replay) -----------------
+    function buildScoreMemo(res){ return MEMO_TAG+'|score|sig='+String(entrySig).slice(0,32)+'|score='+res.score+'|top='+res.top+'|time='+res.timeMs; }
+
+    // ---- flow glue ----------------------------------------------------------
+    function onEntryConfirmed(sig){ entrySig=sig; busy=false; lockModeToggle(true); playBtn.classList.add('hidden'); startRound(); }
+    function handleRoundEnd(res){ pendingResult=res; busy=false;
+      playBtn.classList.add('hidden');
+      postBtn.classList.remove('hidden'); postBtn.disabled=false; postBtn.textContent='Post score (1 OIL)';
+      setStatus('Run over \u2014 score <b>'+res.score+'</b>, Top Bot <b>#'+botForValue(res.top)+'</b>. Post it to the leaderboard (1 OIL).', 'ok');
+    }
+    function showPosted(top){ pendingResult=null; entrySig=null; busy=false;
+      boardEl.classList.add('locked'); postBtn.classList.add('hidden'); lockModeToggle(false);
+      $('posted-text').innerHTML='Top Bot <b>#'+botForValue(top)+'</b> (tile '+top+'). It\u2019ll appear on the Ranked leaderboard once recorded on-chain \u2014 a fun ranking, not verified.';
+      $('postedSheet').classList.add('show');
+    }
+    function resetToPlay(){ entrySig=null; pendingResult=null; busy=false;
+      postBtn.classList.add('hidden'); postBtn.disabled=false; postBtn.textContent='Post score (1 OIL)';
+      playBtn.classList.remove('hidden');
+      boardEl.classList.add('locked'); board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); paintAll();
+      lockModeToggle(false);
+      if(wallet.pubkey) checkBalance(wallet.pubkey); else { playBtn.disabled=true; playBtn.textContent='Connect wallet to play'; }
+    }
+
+    // ---- connect (desktop + mobile) -----------------------------------------
+    async function onConnect(){
+      var provider=getProvider();
+      if(!provider){
+        if(window.PhantomMobile && PhantomMobile.isMobile()){
+          var inBrowse=new URLSearchParams(window.location.search).get('src')==='browse';
+          if(!inBrowse){ connectBtn.disabled=true; connectBtn.textContent='Opening in Phantom\u2026'; setStatus('Opening this game inside Phantom\u2019s browser.');
+            var target=window.location.origin+window.location.pathname+'?src=browse';
+            window.location.href='https://phantom.app/ul/browse/'+encodeURIComponent(target)+'?ref='+encodeURIComponent(window.location.origin); return; }
+          connectBtn.disabled=true; connectBtn.textContent='Opening Phantom\u2026'; setStatus('Opening Phantom \u2014 approve, then you\u2019ll come back here.');
+          PhantomMobile.connect(window.location.origin+window.location.pathname); return;
+        }
+        setStatus('Phantom isn\u2019t reachable here. Open this page in a browser with the <a href="https://phantom.app" target="_blank" rel="noopener">Phantom</a> extension.', 'warn'); return;
+      }
+      connectBtn.disabled=true; connectBtn.textContent='Connecting\u2026';
+      try{ var resp=await provider.connect(); wallet.pubkey=resp.publicKey.toString(); connectBtn.textContent='Connected';
+        setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey);
+      }catch(e){ connectBtn.disabled=false; connectBtn.textContent='Connect'; setStatus('Connection cancelled. Tap Connect to try again.', 'warn'); }
+    }
+
+    // ---- play (25 OIL entry) ------------------------------------------------
+    async function onPlay(){
+      if(busy || entrySig) return;
+      if(!canPlay()){ setStatus('Connect a wallet holding at least '+CFG.ENTRY_FEE+' $OIL to play.', 'warn'); return; }
+      busy=true; playBtn.disabled=true; playBtn.textContent='Sending entry\u2026';
+      try{ var sig=await sendPayment(CFG.ENTRY_FEE, MEMO_TAG+'|entry', 'entry'); if(sig===null) return; onEntryConfirmed(sig); }
+      catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey||'')+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Something went wrong sending the entry. No confirmed charge means nothing was taken.'), 'warn');
+        playBtn.disabled=false; playBtn.textContent='Play ('+CFG.ENTRY_FEE+' $OIL)'; busy=false; }
+    }
+
+    // ---- post score (1 OIL) -------------------------------------------------
+    async function onPost(){
+      if(busy || !pendingResult) return;
+      busy=true; postBtn.disabled=true; postBtn.textContent='Posting\u2026';
+      var memo=buildScoreMemo(pendingResult);
+      try{ var sig=await sendPayment(CFG.POST_FEE, memo, 'score'); if(sig===null) return; showPosted(pendingResult.top); }
+      catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey||'')+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Your score post didn\u2019t confirm. Nothing recorded yet \u2014 tap to retry.'), 'warn');
+        postBtn.disabled=false; postBtn.textContent='Retry post'; busy=false; }
+    }
+
+    function onAgain(){ $('postedSheet').classList.remove('show'); resetToPlay(); }
+
+    // ---- mobile redirect resume (mirrors Spot / BM48) -----------------------
+    async function resume(){
+      var actionParam=new URLSearchParams(window.location.search).get('phantom_action');
+      if(!actionParam){
+        if(!wallet.pubkey && window.PhantomMobile && PhantomMobile.hasSession()){ wallet.pubkey=PhantomMobile.getSessionPublicKey();
+          connectBtn.textContent='Connected'; connectBtn.disabled=true; setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey); }
+        return;
+      }
+      connectBtn.disabled=true; connectBtn.textContent='Finishing\u2026'; setStatus('Almost there \u2014 finishing up with Phantom\u2026');
+      var pending=loadPending(); var marker=pending?pending.marker:'rush_sign';
+      var result=window.PhantomMobile?PhantomMobile.consumePendingRedirect(marker):null;
+      if(result&&result.type==='connect'){ wallet.pubkey=result.publicKey; connectBtn.textContent='Connected';
+        setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey); return; }
+      if(result&&result.type==='signTransaction'&&pending){ connectBtn.textContent='Connected'; connectBtn.disabled=true; if(pending.owner) wallet.pubkey=pending.owner; clearPending();
+        try{ var connection=new solanaWeb3.Connection(CFG.RPC,'confirmed'); var rawSig=await connection.sendRawTransaction(result.txBytes,{ skipPreflight:false });
+          setStatus('Payment sent \u2014 waiting for confirmation\u2026'); var ok=await confirmSignature(connection,rawSig,30000);
+          if(!ok) throw new PayError('Confirmation slow. Signature: '+rawSig+'. Do not pay again \u2014 check it first.');
+          if(pending.action==='entry'){ onEntryConfirmed(rawSig); }
+          else if(pending.action==='score'){ pendingResult={ score:pending.score, top:pending.top, timeMs:pending.timeMs }; showPosted(pending.top); }
+          if(wallet.pubkey) checkBalance(wallet.pubkey);
+        }catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey||'')+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Something went wrong after returning from Phantom. Check your wallet activity before retrying.'), 'warn'); }
+        return;
+      }
+      connectBtn.disabled=false; connectBtn.textContent='Connect';
+      setStatus((result&&result.type==='error')?result.message:'The connection didn\u2019t complete \u2014 tap Connect to try again.', 'warn');
+    }
+
+    function init(){
+      if(inited) return; inited=true;
+      connectBtn=$('connectBtn'); walletStatus=$('walletStatus'); playBtn=$('playBtn'); postBtn=$('postBtn');
+      if(TEST_MODE){ $('testBanner').classList.remove('hidden'); }
+      playBtn.disabled=true; playBtn.textContent='Connect wallet to play';
+      connectBtn.addEventListener('click', onConnect);
+      playBtn.addEventListener('click', onPlay);
+      postBtn.addEventListener('click', onPost);
+      $('againBtn').addEventListener('click', onAgain);
+    }
+
+    return { init:init, resume:resume, handleRoundEnd:handleRoundEnd, checkBalance:function(){ if(wallet.pubkey) checkBalance(wallet.pubkey); } };
+  })();
+
+  // ===== Mode switching (kid-safety: Paid is a deliberate opt-in) =============
+  var modeFreeBtn=document.getElementById('modeFree'), modeRankedBtn=document.getElementById('modeRanked');
+  var titleEl=document.getElementById('title'), hintEl=document.getElementById('hint');
+  var overlayEl=document.getElementById('overlay'), confirmSheet=document.getElementById('confirmSheet');
+
+  function lockModeToggle(lock){ modeFreeBtn.disabled=!!lock; modeRankedBtn.disabled=!!lock; }
+
+  function setMode(m){
+    mode=m;
+    if(m==='free'){
+      modeFreeBtn.classList.add('active'); modeRankedBtn.classList.remove('active');
+      titleEl.textContent='Rush';
+      document.getElementById('walletbar').classList.add('hidden');
+      document.getElementById('paidActions').classList.add('hidden');
+      hintEl.innerHTML='Drag a Bot onto a <b>matching</b> Bot before the board floods!';
+      stopRound(); board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); paintAll(); boardEl.classList.remove('locked');
+      document.getElementById('ov-title').textContent='Bot Merge';
+      document.getElementById('ov-text').textContent='Bots rain down and speed up. Drag matching Bots together to merge and score. Survive 60 seconds!';
+      document.getElementById('ov-result').innerHTML='';
+      document.getElementById('ov-saverow').style.display='none';
+      document.getElementById('startbtn').textContent='Tap to start';
+      overlayEl.classList.remove('hidden');
+      lockModeToggle(false);
+    } else {
+      modeRankedBtn.classList.add('active'); modeFreeBtn.classList.remove('active');
+      titleEl.textContent='Ranked';
+      document.getElementById('walletbar').classList.remove('hidden');
+      document.getElementById('paidActions').classList.remove('hidden');
+      document.getElementById('postBtn').classList.add('hidden');
+      document.getElementById('playBtn').classList.remove('hidden');
+      hintEl.innerHTML='25 OIL entry \u00b7 one scored run \u00b7 a <b>fun</b> leaderboard (not verified). Bot holders \u00d71.5.';
+      stopRound(); board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); paintAll(); boardEl.classList.add('locked');
+      overlayEl.classList.add('hidden');
+    }
+  }
+
+  modeFreeBtn.addEventListener('click', function(){ if(mode==='free') return; setMode('free'); });
+  modeRankedBtn.addEventListener('click', function(){ if(mode==='paid') return; confirmSheet.classList.add('show'); });
+  document.getElementById('confirmBack').addEventListener('click', function(){ confirmSheet.classList.remove('show'); });
+  document.getElementById('confirmEnter').addEventListener('click', function(){ confirmSheet.classList.remove('show'); setMode('paid'); Paid.init(); });
+
+  // ===== On load: Free by default. Wallet layer is only touched when returning
+  // ===== from a Phantom redirect or already inside Phantom's browser (both of
+  // ===== which can ONLY occur after the user opted into Paid). ================
+  (function boot(){
+    var params=new URLSearchParams(window.location.search);
+    var actionParam=params.get('phantom_action');
+    var browseParam=params.get('src')==='browse';
+    if(actionParam || browseParam){ setMode('paid'); Paid.init(); Paid.resume(); }
+    else { setMode('free'); }
+    paintAll();
+  })();
 })();
 </script>
 </body>
