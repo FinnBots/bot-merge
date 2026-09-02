@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>FinnBots — Bot Merge Ranked</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jersey+15&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --plum:#5f4c57; --plum-deep:#3e323a; --bg-soft:#fdf3e7; --card:#fffaf3; --ink:#2a2230;
+    --muted:#6e6470; --electric:#3a6ff7; --amber:#f2a03d; --green:#34c759; --red:#c0392b; --line:rgba(95,76,87,0.16);
+    --shadow-sm:0 1px 3px rgba(42,34,48,0.10); --shadow-md:0 6px 18px rgba(42,34,48,0.12); --shadow-lg:0 14px 34px rgba(42,34,48,0.22);
+    --r-sm:8px; --r-md:10px; --r-lg:16px; --r-xl:20px; --r-pill:9999px; --smooth:cubic-bezier(.4,0,.2,1);
+    --font-display:'Jersey 15', ui-monospace, monospace;
+    --font-body:'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg-soft:#221b20; --card:#2f2730; --ink:#f4eef2; --muted:#b9aab3; --line:rgba(255,255,255,0.12);
+      --shadow-md:0 6px 18px rgba(0,0,0,0.42); --shadow-lg:0 14px 34px rgba(0,0,0,0.55); }
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{ font-family:var(--font-body); background:var(--bg-soft); color:var(--ink); line-height:1.35; -webkit-font-smoothing:antialiased;
+    min-height:100dvh; display:flex; justify-content:center; align-items:flex-start;
+    padding: max(10px, env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom)); }
+  .wrap{ width:100%; max-width:min(440px,96vw); display:flex; flex-direction:column; gap:10px; }
+
+  .testBanner{ background:var(--amber); color:#4a2c10; font-weight:700; text-align:center; font-size:13px; padding:6px; border-radius:var(--r-sm); }
+  .testBanner.hidden{ display:none; }
+
+  .topbar{ display:flex; align-items:center; gap:8px; background:var(--card); border-radius:var(--r-lg); padding:9px 13px; box-shadow:var(--shadow-sm); }
+  .eyebrow{ font-family:var(--font-display); font-size:12px; letter-spacing:.5px; color:var(--plum); background:rgba(95,76,87,0.10); padding:6px 10px; border-radius:var(--r-pill); white-space:nowrap; }
+  h1{ font-family:var(--font-display); font-size:clamp(17px,2.6vw,24px); flex:1; }
+
+  .walletbar{ background:var(--card); border-radius:var(--r-lg); padding:11px 13px; box-shadow:var(--shadow-sm); display:flex; flex-direction:column; gap:8px; }
+  .walletrow{ display:flex; align-items:center; gap:8px; }
+  .walletrow .lbl{ font-weight:600; font-size:14px; flex:1; }
+  .connect-btn{ appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:600; font-size:14px; background:var(--plum); color:#fff; padding:9px 16px; border-radius:var(--r-sm); }
+  .connect-btn:disabled{ opacity:.65; cursor:default; }
+  .wallet-status{ font-size:13px; color:var(--muted); }
+  .wallet-status.hidden{ display:none; }
+  .wallet-status.ok{ color:var(--ink); } .wallet-status.warn{ color:var(--red); }
+  .wallet-status .addr{ font-family:ui-monospace,monospace; color:var(--plum); }
+  .retry-btn{ appearance:none; border:1px solid var(--line); background:var(--bg-soft); color:var(--plum); font-size:12px; padding:3px 8px; border-radius:var(--r-sm); cursor:pointer; }
+
+  .stats{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .stat{ background:var(--card); border-radius:var(--r-md); padding:7px 6px; box-shadow:var(--shadow-sm); text-align:center; }
+  .stat .k{ font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+  .stat .v{ font-family:var(--font-display); font-size:clamp(16px,2.4vw,22px); margin-top:2px; }
+  .stat .v small{ font-family:var(--font-body); font-size:10px; color:var(--muted); font-weight:600; }
+
+  .boardwrap{ display:flex; justify-content:center; }
+  .board{ width:min(100%,58vh); aspect-ratio:1; background:var(--plum); border-radius:var(--r-lg); padding:clamp(6px,1.4vw,10px); display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(4,1fr); gap:clamp(5px,1.2vw,8px); box-shadow:var(--shadow-md); touch-action:none; user-select:none; -webkit-user-select:none; }
+  .board.locked{ opacity:.55; pointer-events:none; }
+  .cell{ position:relative; background:rgba(255,255,255,0.06); border-radius:var(--r-sm); overflow:hidden; }
+  .cell.filled{ box-shadow:inset 0 0 0 2px rgba(255,255,255,0.16); cursor:grab; }
+  .cell img,.cell .img-fallback{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; -webkit-user-drag:none; }
+  .cell .img-fallback{ display:flex; align-items:center; justify-content:center; font-family:var(--font-display); color:#fff; font-size:14px; background:var(--plum-deep); }
+  .val{ position:absolute; left:4px; bottom:3px; font-family:var(--font-display); font-size:clamp(13px,2.6vw,20px); color:#fff; background:rgba(20,14,20,0.62); padding:0 6px; border-radius:var(--r-pill); pointer-events:none; }
+  .cell.dragging{ opacity:.35; } .cell.target{ box-shadow:inset 0 0 0 3px var(--amber); } .cell.badtarget{ box-shadow:inset 0 0 0 3px var(--red); }
+  .cell.pop{ animation:pop .2s var(--smooth); } @keyframes pop{0%{transform:scale(.6);}65%{transform:scale(1.15);}100%{transform:scale(1);}}
+  .ghost{ position:fixed; z-index:50; pointer-events:none; border-radius:var(--r-sm); overflow:hidden; box-shadow:var(--shadow-lg); }
+  .ghost img{ width:100%; height:100%; object-fit:cover; } .ghost .val{ font-size:16px; }
+
+  .actions{ display:flex; gap:8px; }
+  .play,.post{ flex:1; appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:700; font-size:16px; padding:13px; border-radius:var(--r-md); box-shadow:var(--shadow-sm); }
+  .play{ background:var(--amber); color:#4a2c10; } .play:disabled{ background:var(--line); color:var(--muted); box-shadow:none; cursor:default; }
+  .post{ background:var(--plum); color:#fff; } .post.hidden,.play.hidden{ display:none; }
+  .hint{ text-align:center; font-size:12px; color:var(--muted); } .hint b{ color:var(--ink); }
+  .brand{ text-align:center; font-family:var(--font-display); font-size:12px; color:var(--muted); }
+  .buy{ text-align:center; font-size:12px; } .buy a{ color:var(--plum); }
+
+  .sheet{ position:fixed; inset:0; background:rgba(42,34,48,0.6); display:none; align-items:center; justify-content:center; padding:18px; z-index:60; }
+  .sheet.show{ display:flex; }
+  .panel{ width:100%; max-width:340px; background:var(--card); border-radius:var(--r-xl); padding:22px; box-shadow:var(--shadow-lg); text-align:center; }
+  .panel h2{ font-family:var(--font-display); font-size:24px; margin-bottom:8px; }
+  .panel p{ font-size:14px; color:var(--muted); margin-bottom:14px; } .panel p b{ color:var(--ink); }
+  .again{ appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:600; font-size:15px; background:var(--amber); color:#4a2c10; padding:11px 22px; border-radius:var(--r-sm); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="testBanner hidden" id="testBanner">🧪 TEST MODE — local validator, fake $OIL. No real value moves.</div>
+    <div class="topbar"><span class="eyebrow">BOT MERGE</span><h1>Ranked</h1></div>
+
+    <section class="walletbar">
+      <div class="walletrow"><span class="lbl">Compete on-chain for the leaderboard</span>
+        <button class="connect-btn" id="connectBtn" type="button">Connect</button></div>
+      <div class="wallet-status hidden" id="walletStatus"></div>
+    </section>
+
+    <div class="stats">
+      <div class="stat" id="stat-top"><div class="k">Top Bot</div><div class="v" id="topbot">—</div></div>
+      <div class="stat"><div class="k">Drags</div><div class="v" id="drags">0<small>/60</small></div></div>
+      <div class="stat"><div class="k">Your best</div><div class="v" id="best">—</div></div>
+    </div>
+
+    <div class="boardwrap"><div class="board locked" id="board" role="grid" aria-label="Bot Merge board"></div></div>
+
+    <div class="actions">
+      <button class="play" id="playBtn" type="button" disabled>Connect wallet to play</button>
+      <button class="post hidden" id="postBtn" type="button">Post score (1 $OIL)</button>
+    </div>
+    <div class="hint">Drag a Bot onto a <b>matching</b> Bot to merge. Build the highest Bot in 60 drags.</div>
+    <div class="buy"><a href="https://magiceden.us/marketplace/finnbot" target="_blank" rel="noopener">Buy a Bot ↗</a></div>
+    <div class="brand">a FinnBots game</div>
+  </div>
+
+  <div class="sheet" id="sheet"><div class="panel">
+    <h2 id="ov-title">Score posted!</h2>
+    <p id="ov-text"></p>
+    <button class="again" id="againBtn" type="button">Play again</button>
+  </div></div>
+
+<script src="phantom-deeplink-libs.min.js?v=20260710b"></script>
+<script src="phantom-mobile.js?v=20260710b"></script>
+<script src="solana-web3.iife.min.js?v=20260710b"></script>
+<script>
+(function(){
+  'use strict';
+  // ==== Config (reused from Spot-a-FinnBot; TEST_MODE first) =================
+  var TEST_MODE = false;   // <-- flip to false ONLY with Founder confirm in this run's output
+  var CFG = TEST_MODE ? {
+    RPC: 'http://127.0.0.1:8899',
+    TOKEN_PROGRAM: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+    MEMO_PROGRAM: 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+    OIL_MINT: 'H97Qcw7ao5yisvE5dRGLKnMhcCsrojFBNxU5ALUJ3SL2',
+    TREASURY: '8tzZzNiGkE2kYXhUSauNEUyVHiaWBt5pBagg7CHKPNBM',
+    TREASURY_TOKEN_ACCOUNT: '7XSE68LH5rekFX9JeyguTsUMmkDm3egCWkSXpnfLAY1J',
+    ENTRY_FEE: 25, POST_FEE: 1, DECIMALS: 2
+  } : {
+    RPC: 'https://finnbots-rpc.mart-kin1000.workers.dev',
+    TOKEN_PROGRAM: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+    MEMO_PROGRAM: 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+    OIL_MINT: 'HrcfXJcFdMoLfbkN5qCTSFrLsAgJNHitmwKc5AyS7xzf',
+    TREASURY: '75WPN3kwYUT5kdPU7V3Fp3LhnxmPC38bsgBCasRQdXMR',
+    TREASURY_TOKEN_ACCOUNT: '2ZBNMLZFfHCuZm9Lfc3b7ut296tRwGtapuXad7zSm1ED',
+    ENTRY_FEE: 25, POST_FEE: 1, DECIMALS: 2
+  };
+  var MEMO_TAG = 'BM48';
+  var ARWEAVE_BASE = 'https://arweave.net/_cPSCheRvzVBlZK7QwM-3nXtteMdBbUn-zJhbGRlMmo';
+  var LADDER = [106,355,710,940,1150,1620,860,2106,2480,357];
+  var MAX_ACTIONS = 60;
+  var wallet = { pubkey:null, oil:0 };
+
+  if(TEST_MODE){ document.getElementById('testBanner').classList.remove('hidden'); }
+
+  var connectBtn=document.getElementById('connectBtn'), walletStatus=document.getElementById('walletStatus');
+  var boardEl=document.getElementById('board'), playBtn=document.getElementById('playBtn'), postBtn=document.getElementById('postBtn');
+  var topbotEl=document.getElementById('topbot'), dragsEl=document.getElementById('drags'), bestEl=document.getElementById('best');
+  var busy=false, round=null; // round = {seedPrng, board, actions, entrySigHex}
+
+  function botForValue(v){ var i=Math.min(Math.round(Math.log2(v))-1, LADDER.length-1); return LADDER[Math.max(0,i)]; }
+  function botImageHTML(n){ return '<img src="'+ARWEAVE_BASE+'/'+n+'.png" alt="Bot #'+n+'" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'#'+n+'\',className:\'img-fallback\'}));" />'; }
+
+  // ==== Seeded engine (MUST match merge_engine.verify_ranked) ================
+  function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; var t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+  function emptyCells(b){ var o=[]; for(var i=0;i<16;i++) if(b[i]===0) o.push(i); return o; }
+  function spawn(b,prng){ var e=emptyCells(b); if(!e.length) return; var a=prng(); var pick=e[Math.floor(a*e.length)]; var x=prng(); b[pick]=(x<0.9)?2:4; }
+  function initBoardRanked(prng){ var b=new Array(16).fill(0); spawn(b,prng); spawn(b,prng); spawn(b,prng); return b; }
+  function highest(b){ var m=0; for(var i=0;i<16;i++) if(b[i]>m) m=b[i]; return m; }
+
+  function render(popIdx){
+    boardEl.innerHTML='';
+    for(var i=0;i<16;i++){ var c=document.createElement('div'); c.className='cell'; c.dataset.idx=i; var v=round?round.board[i]:0;
+      if(v){ c.className='cell filled'+(popIdx===i?' pop':''); c.innerHTML=botImageHTML(botForValue(v))+'<span class="val">'+v+'</span>'; }
+      boardEl.appendChild(c); }
+    if(round){ var h=highest(round.board); topbotEl.innerHTML=h?('#'+botForValue(h)+' <small>'+h+'</small>'):'—';
+      dragsEl.innerHTML=round.actions.length+'<small>/'+MAX_ACTIONS+'</small>';
+      var cur=parseInt(safeGet('bm48_best')||'0',10); if(h>cur){ safeSet('bm48_best',String(h)); cur=h; }
+      bestEl.innerHTML=cur?('#'+botForValue(cur)+' <small>'+cur+'</small>'):'—'; }
+  }
+  function safeGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
+  function safeSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
+
+  async function beginRankedRound(sigBytes){
+    var digest = await crypto.subtle.digest('SHA-256', sigBytes);
+    var d = new Uint8Array(digest);
+    var hex = Array.prototype.map.call(d, function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+    var seed = ((d[0]<<24)|(d[1]<<16)|(d[2]<<8)|d[3])>>>0;
+    var prng = mulberry32(seed);
+    round = { prng:prng, board:initBoardRanked(prng), actions:[], entrySigHex:hex };
+    saveRoundState();
+    boardEl.classList.remove('locked');
+    playBtn.classList.add('hidden'); postBtn.classList.remove('hidden');
+    setStatus('Round live — drag matching Bots to merge. Post your score when you\u2019re done.', 'ok');
+    render();
+  }
+
+  // one seeded drop after each valid drag; end at MAX_ACTIONS
+  function afterAction(popIdx){
+    if(emptyCells(round.board).length>0) spawn(round.board, round.prng);
+    saveRoundState(); render(popIdx);
+    if(round.actions.length>=MAX_ACTIONS){ boardEl.classList.add('locked'); setStatus('60 drags used — post your final score.', 'ok'); }
+  }
+
+  // ==== Drag to merge (Pointer Events) ======================================
+  var drag=null;
+  function idxFromPoint(x,y){ var el=document.elementFromPoint(x,y); if(!el||!el.closest) return -1; var c=el.closest('.cell'); if(!c||!boardEl.contains(c)) return -1; return +c.dataset.idx; }
+  function clearTargets(){ for(var i=0;i<boardEl.children.length;i++) boardEl.children[i].classList.remove('target','badtarget'); }
+  function cleanup(){ if(drag){ if(drag.ghost&&drag.ghost.parentNode) drag.ghost.parentNode.removeChild(drag.ghost); clearTargets(); if(boardEl.children[drag.src]) boardEl.children[drag.src].classList.remove('dragging'); } }
+  boardEl.addEventListener('pointerdown', function(e){
+    if(!round || round.actions.length>=MAX_ACTIONS) return;
+    var c=e.target.closest?e.target.closest('.cell'):null; if(!c) return; var idx=+c.dataset.idx; if(!round.board[idx]) return;
+    e.preventDefault(); if(drag) cleanup();
+    var r=boardEl.children[idx].getBoundingClientRect();
+    var g=document.createElement('div'); g.className='ghost'; g.style.width=r.width+'px'; g.style.height=r.width+'px';
+    g.innerHTML=botImageHTML(botForValue(round.board[idx]))+'<span class="val">'+round.board[idx]+'</span>'; document.body.appendChild(g);
+    drag={ src:idx, val:round.board[idx], size:r.width, ghost:g };
+    g.style.left=(e.clientX-r.width/2)+'px'; g.style.top=(e.clientY-r.width/2)+'px';
+    boardEl.children[idx].classList.add('dragging'); try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  boardEl.addEventListener('pointermove', function(e){ if(!drag) return; e.preventDefault();
+    drag.ghost.style.left=(e.clientX-drag.size/2)+'px'; drag.ghost.style.top=(e.clientY-drag.size/2)+'px';
+    clearTargets(); var t=idxFromPoint(e.clientX,e.clientY);
+    if(t>=0&&t!==drag.src) boardEl.children[t].classList.add((round.board[t]===0||round.board[t]===drag.val)?'target':'badtarget'); });
+  boardEl.addEventListener('pointerup', function(e){ if(!drag) return; e.preventDefault();
+    var t=idxFromPoint(e.clientX,e.clientY), src=drag.src, val=drag.val; cleanup(); drag=null;
+    if(t<0||t===src) return;
+    if(round.board[t]===0){ round.board[t]=val; round.board[src]=0; round.actions.push([src,t]); afterAction(); }
+    else if(round.board[t]===val){ round.board[t]=val*2; round.board[src]=0; round.actions.push([src,t]); afterAction(t); } });
+  boardEl.addEventListener('pointercancel', function(){ if(drag){ cleanup(); drag=null; } });
+
+  // ==== Round persistence (survives mobile Phantom redirect) =================
+  function saveRoundState(){ if(!round) return; try{ localStorage.setItem('bm48_round', JSON.stringify({ board:round.board, actions:round.actions, entrySigHex:round.entrySigHex })); }catch(e){} }
+  function loadRoundState(){ try{ var v=localStorage.getItem('bm48_round'); return v?JSON.parse(v):null; }catch(e){ return null; } }
+  function clearRoundState(){ try{ localStorage.removeItem('bm48_round'); }catch(e){} }
+
+  // ==== Wallet layer (reused verbatim from Spot-a-FinnBot) ===================
+  function getProvider(){ if(window.phantom&&window.phantom.solana&&window.phantom.solana.isPhantom) return window.phantom.solana; if(window.solana&&window.solana.isPhantom) return window.solana; return null; }
+  function shortAddr(a){ return a.slice(0,4)+'\u2026'+a.slice(-4); }
+  function setStatus(html,cls){ walletStatus.classList.remove('hidden'); walletStatus.className='wallet-status'+(cls?' '+cls:''); walletStatus.innerHTML=html; }
+  function canPlay(){ return !!wallet.pubkey && wallet.oil>=CFG.ENTRY_FEE; }
+  function delay(ms){ return new Promise(function(res){ setTimeout(res,ms); }); }
+
+  connectBtn.addEventListener('click', async function(){
+    var provider=getProvider();
+    if(!provider){
+      if(window.PhantomMobile && PhantomMobile.isMobile()){
+        var inBrowse=new URLSearchParams(window.location.search).get('src')==='browse';
+        if(!inBrowse){ connectBtn.disabled=true; connectBtn.textContent='Opening in Phantom\u2026'; setStatus('Opening this game inside Phantom\u2019s browser.');
+          var target=window.location.origin+window.location.pathname+'?src=browse';
+          window.location.href='https://phantom.app/ul/browse/'+encodeURIComponent(target)+'?ref='+encodeURIComponent(window.location.origin); return; }
+        connectBtn.disabled=true; connectBtn.textContent='Opening Phantom\u2026'; setStatus('Opening Phantom \u2014 approve, then you\u2019ll come back here.');
+        PhantomMobile.connect(window.location.origin+window.location.pathname); return;
+      }
+      setStatus('Phantom isn\u2019t reachable here. Open this page in a browser with the <a href="https://phantom.app" target="_blank" rel="noopener">Phantom</a> extension.', 'warn'); return;
+    }
+    connectBtn.disabled=true; connectBtn.textContent='Connecting\u2026';
+    try{ var resp=await provider.connect(); wallet.pubkey=resp.publicKey.toString(); connectBtn.textContent='Connected';
+      setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey);
+    }catch(e){ connectBtn.disabled=false; connectBtn.textContent='Connect'; setStatus('Connection cancelled. Tap Connect to try again.', 'warn'); }
+  });
+
+  async function fetchOilBalance(owner){
+    try{ var body=JSON.stringify({ jsonrpc:'2.0', id:'oilbal', method:'getTokenAccountsByOwner', params:[ owner, { mint:CFG.OIL_MINT }, { encoding:'jsonParsed' } ] });
+      var r=await fetch(CFG.RPC,{ method:'POST', headers:{'Content-Type':'application/json'}, body:body }); if(!r.ok) return 0;
+      var j=await r.json(); var accts=j&&j.result&&j.result.value; if(!accts||!accts.length) return 0;
+      var base=0; accts.forEach(function(acc){ try{ base+=Number(acc.account.data.parsed.info.tokenAmount.amount); }catch(e){} });
+      return base/Math.pow(10,CFG.DECIMALS);
+    }catch(e){ return 0; }
+  }
+  async function checkBalance(owner){
+    wallet.oil=await fetchOilBalance(owner);
+    var pfx=TEST_MODE?'\ud83e\uddea TEST MODE \u2014 ':'';
+    if(wallet.oil>=CFG.ENTRY_FEE){ setStatus('Connected as <span class="addr">'+shortAddr(owner)+'</span><br/>'+pfx+'You hold <b>'+wallet.oil.toFixed(2)+'</b> $OIL \u2014 cleared to play.', 'ok');
+      if(!round){ playBtn.disabled=false; playBtn.textContent='Play ('+CFG.ENTRY_FEE+' $OIL)'; } }
+    else { setStatus('Connected as <span class="addr">'+shortAddr(owner)+'</span><br/>'+pfx+'This wallet holds <b>'+wallet.oil.toFixed(2)+'</b> $OIL \u2014 need at least '+CFG.ENTRY_FEE+' to play.', 'warn');
+      playBtn.disabled=true; playBtn.textContent='Need '+CFG.ENTRY_FEE+' $OIL'; }
+  }
+
+  // ==== Payment (reused verbatim from Spot-a-FinnBot) ========================
+  var PENDING_KEY='bm48_pending_action';
+  function savePending(a){ try{ localStorage.setItem(PENDING_KEY, JSON.stringify(a)); }catch(e){} }
+  function loadPending(){ try{ var v=localStorage.getItem(PENDING_KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
+  function clearPending(){ try{ localStorage.removeItem(PENDING_KEY); }catch(e){} }
+  function PayError(msg){ this.userMessage=msg; }
+  function u64LE(amount){ var out=new Uint8Array(8); var big=BigInt(Math.round(amount)); for(var i=0;i<8;i++){ out[i]=Number(big&0xffn); big>>=8n; } return out; }
+  function buildTransferIx(src,dst,owner,amt){ var data=new Uint8Array(9); data[0]=3; data.set(u64LE(amt),1);
+    return new solanaWeb3.TransactionInstruction({ programId:new solanaWeb3.PublicKey(CFG.TOKEN_PROGRAM),
+      keys:[{pubkey:src,isSigner:false,isWritable:true},{pubkey:dst,isSigner:false,isWritable:true},{pubkey:owner,isSigner:true,isWritable:false}], data:data }); }
+  function buildMemoIx(owner,text){ return new solanaWeb3.TransactionInstruction({ programId:new solanaWeb3.PublicKey(CFG.MEMO_PROGRAM), keys:[{pubkey:owner,isSigner:true,isWritable:false}], data:new TextEncoder().encode(text) }); }
+  async function confirmSignature(connection,signature,timeoutMs){ var start=Date.now();
+    while(Date.now()-start<timeoutMs){ var res=await connection.getSignatureStatuses([signature]); var st=res&&res.value&&res.value[0];
+      if(st){ if(st.err) throw new PayError('The transaction failed on-chain \u2014 no charge was made. Please try again.'); if(st.confirmationStatus==='confirmed'||st.confirmationStatus==='finalized') return true; } await delay(1500); } return false; }
+
+  async function sendPayment(amountOil, memoText, action){
+    var provider=getProvider();
+    var useMobile=!provider && window.PhantomMobile && PhantomMobile.isMobile() && PhantomMobile.hasSession();
+    if(!provider && !useMobile) throw new PayError('Phantom isn\u2019t reachable here \u2014 open this page in your browser, or tap Connect again on mobile.');
+    var ownerPk=new solanaWeb3.PublicKey(wallet.pubkey);
+    var connection=new solanaWeb3.Connection(CFG.RPC,'confirmed');
+    var tokAccts=await connection.getTokenAccountsByOwner(ownerPk,{ mint:new solanaWeb3.PublicKey(CFG.OIL_MINT) });
+    if(!tokAccts.value.length) throw new PayError('No $OIL account found in this wallet.');
+    var sourcePubkey=tokAccts.value[0].pubkey;
+    var balInfo=await connection.getTokenAccountBalance(sourcePubkey);
+    var needBase=Math.round(amountOil*Math.pow(10,CFG.DECIMALS));
+    if(Number(balInfo.value.amount)<needBase) throw new PayError('Not enough liquid $OIL \u2014 need '+amountOil+'.');
+    var destPubkey=new solanaWeb3.PublicKey(CFG.TREASURY_TOKEN_ACCOUNT);
+    var tx=new solanaWeb3.Transaction();
+    tx.add(buildTransferIx(sourcePubkey,destPubkey,ownerPk,needBase), buildMemoIx(ownerPk,memoText));
+    tx.feePayer=ownerPk; var latest=await connection.getLatestBlockhash(); tx.recentBlockhash=latest.blockhash;
+    if(useMobile){ savePending({ action:action, owner:wallet.pubkey, marker:'bm48_sign' }); saveRoundState(); setStatus('Opening Phantom to approve\u2026');
+      var unsigned=tx.serialize({ requireAllSignatures:false, verifySignatures:false });
+      PhantomMobile.signTransaction(unsigned, window.location.origin+window.location.pathname, 'bm48_sign'); return null; }
+    var signed=await provider.signTransaction(tx); setStatus('Sending payment\u2026');
+    var rawSig=await connection.sendRawTransaction(signed.serialize(),{ skipPreflight:false }); setStatus('Payment sent \u2014 waiting for confirmation\u2026');
+    var ok=await confirmSignature(connection,rawSig,30000); if(!ok) throw new PayError('Confirmation is taking longer than expected. Signature: '+rawSig+'. Do not pay again \u2014 check it first.');
+    return signed.signature;
+  }
+
+  // ==== Mobile redirect resume (mirrors Spot) ===============================
+  (async function resume(){
+    var actionParam=new URLSearchParams(window.location.search).get('phantom_action');
+    if(!actionParam){
+      if(!wallet.pubkey && window.PhantomMobile && PhantomMobile.hasSession()){ wallet.pubkey=PhantomMobile.getSessionPublicKey();
+        connectBtn.textContent='Connected'; connectBtn.disabled=true; setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey); }
+      return;
+    }
+    connectBtn.disabled=true; connectBtn.textContent='Finishing\u2026'; setStatus('Almost there \u2014 finishing up with Phantom\u2026');
+    var pending=loadPending(); var marker=pending?pending.marker:'bm48_sign';
+    var result=window.PhantomMobile?PhantomMobile.consumePendingRedirect(marker):null;
+    if(result&&result.type==='connect'){ wallet.pubkey=result.publicKey; connectBtn.textContent='Connected';
+      setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey); return; }
+    if(result&&result.type==='signTransaction'&&pending){ connectBtn.textContent='Connected'; connectBtn.disabled=true; if(pending.owner) wallet.pubkey=pending.owner; clearPending();
+      try{ var connection=new solanaWeb3.Connection(CFG.RPC,'confirmed'); var rawSig=await connection.sendRawTransaction(result.txBytes,{ skipPreflight:false });
+        setStatus('Payment sent \u2014 waiting for confirmation\u2026'); var ok=await confirmSignature(connection,rawSig,30000);
+        if(!ok) throw new PayError('Confirmation slow. Signature: '+rawSig+'. Do not pay again \u2014 check it first.');
+        var deserialized=solanaWeb3.Transaction.from(result.txBytes);
+        if(pending.action==='entry'){ await beginRankedRound(deserialized.signature); }
+        else if(pending.action==='score'){ var rs=loadRoundState(); showPosted(rs?highestFrom(rs.board):0); }
+        if(wallet.pubkey) checkBalance(wallet.pubkey);
+      }catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey||'')+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Something went wrong after returning from Phantom. Check your wallet activity before retrying.'), 'warn'); }
+      return;
+    }
+    connectBtn.disabled=false; connectBtn.textContent='Connect';
+    setStatus((result&&result.type==='error')?result.message:'The connection didn\u2019t complete \u2014 tap Connect to try again.', 'warn');
+  })();
+  function highestFrom(b){ var m=0; for(var i=0;i<16;i++) if(b[i]>m) m=b[i]; return m; }
+
+  // ==== Entry + score-post flows ============================================
+  function packMoves(actions){ var bytes=[]; for(var i=0;i<actions.length;i++){ bytes.push(((actions[i][0]&15)<<4)|(actions[i][1]&15)); }
+    return bytes.map(function(b){ return b.toString(16).padStart(2,'0'); }).join(''); }
+
+  playBtn.addEventListener('click', async function(){
+    if(busy || round) return;
+    if(!canPlay()){ setStatus('Connect a wallet holding at least '+CFG.ENTRY_FEE+' $OIL to play.', 'warn'); return; }
+    busy=true; playBtn.disabled=true; playBtn.textContent='Sending entry\u2026';
+    try{ var sigBytes=await sendPayment(CFG.ENTRY_FEE, MEMO_TAG+'|entry', 'entry'); if(sigBytes===null) return; await beginRankedRound(sigBytes); }
+    catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Something went wrong sending the entry. No confirmed charge means nothing was taken.'), 'warn');
+      playBtn.disabled=false; playBtn.textContent='Play ('+CFG.ENTRY_FEE+' $OIL)'; }
+    finally{ busy=false; }
+  });
+
+  postBtn.addEventListener('click', async function(){
+    if(busy || !round) return;
+    busy=true; postBtn.disabled=true; postBtn.textContent='Posting\u2026';
+    var best=highest(round.board);
+    var memo=MEMO_TAG+'|score|sig='+round.entrySigHex.slice(0,32)+'|best='+best+'|moves='+packMoves(round.actions);
+    try{ var sig=await sendPayment(CFG.POST_FEE, memo, 'score'); if(sig===null) return; showPosted(best); }
+    catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Your score post didn\u2019t confirm. Nothing recorded yet \u2014 tap to retry.'), 'warn');
+      postBtn.disabled=false; postBtn.textContent='Retry post'; busy=false; }
+  });
+
+  function showPosted(best){
+    clearRoundState(); round=null; boardEl.classList.add('locked'); postBtn.classList.add('hidden');
+    document.getElementById('ov-text').innerHTML='Top Bot <b>#'+botForValue(best)+'</b> (tile '+best+'). It\u2019ll appear on the leaderboard once verified on-chain.';
+    document.getElementById('sheet').classList.add('show');
+  }
+  document.getElementById('againBtn').addEventListener('click', function(){ document.getElementById('sheet').classList.remove('show');
+    playBtn.classList.remove('hidden'); postBtn.classList.add('hidden'); postBtn.disabled=false; postBtn.textContent='Post score (1 $OIL)';
+    if(wallet.pubkey) checkBalance(wallet.pubkey); render(); });
+
+  render();
+})();
+</script>
+</body>
+</html>
