@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rush Leaderboard · FinnBots</title>
+<meta name="description" content="A fun ranking of paid Rush scores, recorded from on-chain entries. Not verified or provably fair. Bot holders score ×1.5.">
+<style>
+  /* ── MDL v1 tokens ─────────────────────────────────────────────── */
+  :root{
+    --bg-base:#F2F2F7; --bg-elevated:#FFFFFF; --bg-overlay:rgba(255,255,255,0.72);
+    --label-primary:#1C1C1E; --label-secondary:rgba(60,60,67,0.80); --label-tertiary:rgba(60,60,67,0.60);
+    --label-quaternary:rgba(60,60,67,0.10);
+    --accent-blue:#007AFF; --accent-green:#34C759; --accent-red:#FF3B30;
+    --separator:rgba(60,60,67,0.29);
+    --shadow-sm:0 1px 3px rgba(0,0,0,0.08); --shadow-md:0 4px 12px rgba(0,0,0,0.10); --shadow-lg:0 12px 32px rgba(0,0,0,0.12);
+    --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-xl:22px; --radius-pill:9999px;
+    --ease-spring:cubic-bezier(0.34,1.56,0.64,1); --ease-smooth:cubic-bezier(0.4,0,0.2,1);
+    --dur-fast:150ms; --dur-normal:250ms; --dur-slow:400ms;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px;
+    --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif;
+    --mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg-base:#1C1C1E; --bg-elevated:#2C2C2E; --bg-overlay:rgba(28,28,30,0.80);
+      --label-primary:#FFFFFF; --label-secondary:rgba(235,235,245,0.80); --label-tertiary:rgba(235,235,245,0.48);
+      --label-quaternary:rgba(235,235,245,0.10);
+      --accent-blue:#0A84FF; --accent-green:#30D158; --accent-red:#FF453A;
+      --separator:rgba(84,84,88,0.65);
+      --shadow-sm:0 1px 3px rgba(0,0,0,0.30); --shadow-md:0 4px 12px rgba(0,0,0,0.36); --shadow-lg:0 12px 32px rgba(0,0,0,0.44);
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font); background:var(--bg-base); color:var(--label-primary);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    padding:var(--space-6) var(--space-4) var(--space-12);
+  }
+  .wrap{max-width:880px; margin:0 auto;}
+
+  /* Load choreography */
+  .fade{opacity:0; transform:translateY(12px);}
+  @media (prefers-reduced-motion:no-preference){
+    .fade{animation:rise var(--dur-slow) var(--ease-spring) forwards;}
+    @keyframes rise{to{opacity:1; transform:none;}}
+  }
+  @media (prefers-reduced-motion:reduce){ .fade{opacity:1; transform:none;} }
+
+  /* ── Header ─────────────────────────────────────────────────────── */
+  header{margin:var(--space-6) 0 var(--space-8);}
+  .eyebrow{font-size:12px; letter-spacing:0.5px; text-transform:uppercase; color:var(--label-tertiary); font-weight:600; margin:0 0 var(--space-2);}
+  h1{font-size:34px; line-height:1.05; letter-spacing:-0.4px; font-weight:700; margin:0;}
+  .honest{font-size:16px; line-height:1.45; color:var(--label-secondary); margin:var(--space-3) 0 0; max-width:60ch;}
+  .honest strong{font-weight:600; color:var(--label-primary);}
+  .playlink{display:inline-block; margin-top:var(--space-4); font-size:16px; font-weight:600; color:var(--accent-blue); text-decoration:none;}
+  .playlink:hover{text-decoration:underline;}
+
+  /* ── KPI tiles ──────────────────────────────────────────────────── */
+  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:var(--space-4); margin:var(--space-8) 0;}
+  .tile{background:var(--bg-elevated); box-shadow:var(--shadow-md); border-radius:var(--radius-lg); padding:var(--space-5) var(--space-6);}
+  .tile .k{font-size:12px; letter-spacing:0.5px; text-transform:uppercase; color:var(--label-secondary); font-weight:600;}
+  .tile .v{font-size:34px; font-weight:700; letter-spacing:-0.4px; margin-top:var(--space-2); font-variant-numeric:tabular-nums;}
+
+  /* ── Card + table ───────────────────────────────────────────────── */
+  .card{background:var(--bg-elevated); box-shadow:var(--shadow-md); border-radius:var(--radius-lg); overflow:hidden;}
+  .cardhead{display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); padding:var(--space-5) var(--space-6); border-bottom:1px solid var(--separator);}
+  .cardhead h2{font-size:17px; font-weight:600; letter-spacing:-0.1px; margin:0;}
+  .updated{font-size:13px; color:var(--label-tertiary); letter-spacing:0.1px;}
+  .refresh{appearance:none; border:none; cursor:pointer; background:var(--accent-blue); color:#fff; font-family:var(--font); font-size:15px; font-weight:600; padding:8px 16px; border-radius:var(--radius-sm); transition:opacity var(--dur-fast) var(--ease-smooth), transform var(--dur-fast) var(--ease-smooth);}
+  .refresh:active{opacity:0.85; transform:scale(0.98);}
+  .refresh:disabled{opacity:0.5; cursor:default;}
+
+  .scroll{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; min-width:560px;}
+  thead th{font-size:13px; font-weight:600; letter-spacing:0.1px; text-transform:uppercase; color:var(--label-tertiary); text-align:left; padding:var(--space-3) var(--space-4); border-bottom:1px solid var(--separator); white-space:nowrap;}
+  thead th.num{text-align:right;}
+  tbody td{height:44px; padding:0 var(--space-4); border-bottom:1px solid var(--separator); font-size:16px; vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background var(--dur-fast) var(--ease-smooth);}
+  @media(hover:hover){ tbody tr:hover{background:var(--label-quaternary);} }
+
+  .rank{font-variant-numeric:tabular-nums; font-weight:600; color:var(--label-secondary); width:56px;}
+  tr.top1 .rank,tr.top2 .rank,tr.top3 .rank{color:var(--accent-blue); font-weight:700;}
+
+  .player{font-family:var(--mono); font-size:15px; letter-spacing:0.2px; cursor:pointer; color:var(--label-primary); background:none; border:none; padding:0; text-align:left;}
+  .player:hover{color:var(--accent-blue);}
+  .player .copied{font-family:var(--font); font-size:12px; color:var(--accent-green); margin-left:8px; opacity:0; transition:opacity var(--dur-fast) var(--ease-smooth);}
+  .player.show .copied{opacity:1;}
+
+  td.num{text-align:right; font-variant-numeric:tabular-nums;}
+  .score{font-weight:600;}
+  .badge{display:inline-block; margin-left:8px; font-size:12px; font-weight:600; line-height:1; padding:5px 8px; border-radius:var(--radius-pill); color:var(--accent-green); background:color-mix(in srgb,var(--accent-green) 15%, transparent); vertical-align:middle;}
+  .bot{font-weight:600;}
+  .sub{display:block; font-size:12px; color:var(--label-tertiary); letter-spacing:0.2px;}
+
+  .state{padding:var(--space-10) var(--space-6); text-align:center; color:var(--label-secondary); font-size:16px;}
+  .state.err{color:var(--accent-red);}
+
+  footer{margin-top:var(--space-8); font-size:13px; color:var(--label-tertiary); line-height:1.5;}
+  footer a{color:var(--accent-blue); text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="fade" style="animation-delay:0ms">
+    <p class="eyebrow">FinnBots · Solana</p>
+    <h1>Rush Leaderboard</h1>
+    <p class="honest">A fun ranking of paid Rush scores, recorded from on-chain entries.
+      <strong>It is not verified or provably fair</strong> — Rush is real-time and can't be replayed, so scores are recorded, not checked. Bot holders score <strong>×1.5</strong>.</p>
+    <a class="playlink" href="https://merge.finnstergram.com/">Play Rush →</a>
+  </header>
+
+  <section class="kpis fade" id="kpis" style="animation-delay:60ms" hidden>
+    <div class="tile"><div class="k">Players on the board</div><div class="v" id="kpiPlayers">—</div></div>
+    <div class="tile"><div class="k">Top score</div><div class="v" id="kpiTop">—</div></div>
+  </section>
+
+  <section class="card fade" style="animation-delay:120ms">
+    <div class="cardhead">
+      <h2>Rankings</h2>
+      <span class="updated" id="updated">Loading…</span>
+      <button class="refresh" id="refresh" type="button">Refresh</button>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="num">#</th>
+            <th>Player</th>
+            <th class="num">Score</th>
+            <th>Top tile</th>
+            <th class="num">Time</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="state" id="state">Loading leaderboard…</div>
+  </section>
+
+  <footer class="fade" style="animation-delay:180ms">
+    Scores are read from paid on-chain <span style="font-family:var(--mono)">RUSH</span> entries and refreshed when the ledger is next published — this page is a snapshot, not a live feed.
+    $OIL is the FinnBots in-game token
+    (<a href="https://finnstergram.com/games">games hub</a>).
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var CSV = "./leaderboard_rush.csv";           // same-origin snapshot, committed beside this page
+  var COLS = ["rank","wallet","score_raw","score_adjusted","top_tile","top_bot","time_ms","bot_holder","score_signature","entry_signature"];
+
+  var rowsEl = document.getElementById("rows");
+  var stateEl = document.getElementById("state");
+  var updatedEl = document.getElementById("updated");
+  var refreshEl = document.getElementById("refresh");
+  var kpisEl = document.getElementById("kpis");
+  var kpiPlayers = document.getElementById("kpiPlayers");
+  var kpiTop = document.getElementById("kpiTop");
+
+  function truncate(a){ return a && a.length > 12 ? a.slice(0,4) + "…" + a.slice(-4) : (a || "—"); }
+  function isHolder(v){ v = String(v||"").trim().toLowerCase(); return v==="true"||v==="1"||v==="yes"||v==="y"; }
+  function intFmt(n){ return isFinite(n) ? Number(n).toLocaleString("en-GB") : "—"; }
+  function secs(ms){ var n = Number(ms); return isFinite(n) ? (n/1000).toFixed(1) + "s" : "—"; }
+
+  // Minimal CSV parse — schema fields are base58/integers, none contain commas or quotes.
+  function parseCSV(text){
+    var lines = text.replace(/\r/g,"").split("\n").filter(function(l){ return l.trim() !== ""; });
+    if(!lines.length) return [];
+    var header = lines[0].split(",").map(function(h){ return h.trim(); });
+    var idx = {};
+    header.forEach(function(h,i){ idx[h] = i; });
+    var out = [];
+    for(var i=1;i<lines.length;i++){
+      var c = lines[i].split(",");
+      var o = {};
+      COLS.forEach(function(name){ o[name] = idx[name] !== undefined ? String(c[idx[name]]||"").trim() : ""; });
+      out.push(o);
+    }
+    return out;
+  }
+
+  function copyWallet(btn, addr){
+    function done(){ btn.classList.add("show"); setTimeout(function(){ btn.classList.remove("show"); }, 1200); }
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(addr).then(done, function(){}); }
+    else { done(); }
+  }
+
+  function render(rows){
+    rowsEl.innerHTML = "";
+    if(!rows.length){
+      stateEl.textContent = "No scores yet — be the first to play a paid Rush round.";
+      stateEl.classList.remove("err"); stateEl.hidden = false;
+      kpisEl.hidden = true;
+      return;
+    }
+    stateEl.hidden = true;
+
+    // Trust the scanner's rank if present & sane; else sort by adjusted score, fastest time tiebreak.
+    var haveRank = rows.every(function(r){ return r.rank !== "" && isFinite(Number(r.rank)); });
+    if(haveRank){ rows.sort(function(a,b){ return Number(a.rank) - Number(b.rank); }); }
+    else {
+      rows.sort(function(a,b){
+        var d = Number(b.score_adjusted||0) - Number(a.score_adjusted||0);
+        return d !== 0 ? d : (Number(a.time_ms||0) - Number(b.time_ms||0));
+      });
+    }
+
+    var topScore = 0;
+    rows.forEach(function(r,i){
+      var rank = haveRank ? Number(r.rank) : (i+1);
+      var holder = isHolder(r.bot_holder);
+      var adj = Number(r.score_adjusted||0);
+      if(adj > topScore) topScore = adj;
+
+      var tr = document.createElement("tr");
+      if(rank>=1 && rank<=3) tr.className = "top"+rank;
+
+      // Rank
+      var tdR = document.createElement("td"); tdR.className = "rank num"; tdR.textContent = rank;
+      // Player (click-to-copy full address)
+      var tdP = document.createElement("td");
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "player";
+      btn.setAttribute("title", r.wallet || "");
+      btn.setAttribute("aria-label", "Copy wallet " + (r.wallet||""));
+      btn.appendChild(document.createTextNode(truncate(r.wallet)));
+      var cp = document.createElement("span"); cp.className = "copied"; cp.textContent = "Copied"; btn.appendChild(cp);
+      btn.addEventListener("click", function(){ copyWallet(btn, r.wallet||""); });
+      tdP.appendChild(btn);
+      // Score (adjusted) + holder badge
+      var tdS = document.createElement("td"); tdS.className = "num";
+      var sc = document.createElement("span"); sc.className = "score"; sc.textContent = intFmt(adj); tdS.appendChild(sc);
+      if(holder){ var b = document.createElement("span"); b.className = "badge"; b.textContent = "×1.5"; tdS.appendChild(b); }
+      // Top tile → Bot
+      var tdT = document.createElement("td");
+      var bot = document.createElement("span"); bot.className = "bot"; bot.textContent = r.top_bot ? ("#"+r.top_bot) : "—"; tdT.appendChild(bot);
+      var sub = document.createElement("span"); sub.className = "sub"; sub.textContent = r.top_tile ? ("tile "+r.top_tile) : ""; tdT.appendChild(sub);
+      // Time
+      var tdM = document.createElement("td"); tdM.className = "num"; tdM.textContent = secs(r.time_ms);
+
+      tr.appendChild(tdR); tr.appendChild(tdP); tr.appendChild(tdS); tr.appendChild(tdT); tr.appendChild(tdM);
+      rowsEl.appendChild(tr);
+    });
+
+    kpiPlayers.textContent = intFmt(rows.length);
+    kpiTop.textContent = intFmt(topScore);
+    kpisEl.hidden = false;
+  }
+
+  function stamp(resp){
+    var lm = resp.headers.get("Last-Modified");
+    var d = lm ? new Date(lm) : new Date();
+    var s = d.toLocaleString("en-GB",{ day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+    updatedEl.textContent = "Updated " + s;
+  }
+
+  function load(){
+    refreshEl.disabled = true;
+    stateEl.classList.remove("err");
+    fetch(CSV + "?t=" + Date.now(), { cache:"no-store" })
+      .then(function(resp){
+        if(!resp.ok) throw new Error("HTTP " + resp.status);
+        stamp(resp);
+        return resp.text();
+      })
+      .then(function(text){ render(parseCSV(text)); })
+      .catch(function(e){
+        rowsEl.innerHTML = "";
+        kpisEl.hidden = true;
+        updatedEl.textContent = "";
+        stateEl.textContent = "Couldn't load the leaderboard right now. Try refresh in a moment.";
+        stateEl.classList.add("err"); stateEl.hidden = false;
+      })
+      .then(function(){ refreshEl.disabled = false; });
+  }
+
+  refreshEl.addEventListener("click", load);
+  load();
+})();
+</script>
+</body>
+</html>
