@@ -96,6 +96,14 @@
   .hint{ flex:0 0 auto; text-align:center; font-size:clamp(10px,1.3vw,13px); color:var(--muted); }
   .hint b{ color:var(--ink); }
   .brand{ flex:0 0 auto; text-align:center; font-family:var(--font-display); font-size:clamp(10px,1.2vw,13px); color:var(--muted); letter-spacing:.5px; }
+  /* FDL marketing footer + posted-sheet leaderboard link (Chat 11.10) */
+  .fb-foot{ flex:0 0 auto; text-align:center; }
+  .fb-foot .tag{ font-family:var(--font-display); font-size:clamp(10px,1.2vw,12px); color:var(--muted); letter-spacing:.5px; }
+  .fb-foot nav{ margin-top:3px; display:flex; gap:9px; justify-content:center; align-items:center; flex-wrap:wrap; }
+  .fb-foot nav a{ font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--muted); text-decoration:none; }
+  .fb-foot nav a:hover{ color:var(--plum); }
+  .fb-foot nav span{ color:var(--muted); opacity:.45; font-size:11px; }
+  .panel a.ghostbtn{ text-decoration:none; text-align:center; margin-bottom:8px; box-sizing:border-box; }
 
   .overlay{ position:absolute; inset:0; background:rgba(62,50,58,0.92); border-radius:var(--r-lg); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; z-index:70; padding:20px; }
   .overlay.hidden{ display:none; }
@@ -164,7 +172,16 @@
       <button class="post hidden" id="postBtn" type="button">Post score (1 OIL)</button>
     </div>
 
-    <div class="brand">a FinnBots game</div>
+    <footer class="fb-foot">
+      <div class="tag">a FinnBots game</div>
+      <nav aria-label="More from FinnBots">
+        <a href="https://magiceden.io/marketplace/finnbot" target="_blank" rel="noopener">Buy a Bot</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://finnstergram.com/games" target="_blank" rel="noopener">More games</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://merge.finnstergram.com/leaderboard.html">Rush leaderboard</a>
+      </nav>
+    </footer>
 
     <div class="overlay" id="overlay">
       <h2 id="ov-title">Bot Merge</h2>
@@ -190,6 +207,7 @@
   <div class="sheet" id="postedSheet"><div class="panel">
     <h2>Score posted!</h2>
     <p id="posted-text"></p>
+    <a class="ghostbtn" id="viewLb" href="https://merge.finnstergram.com/leaderboard.html" target="_blank" rel="noopener">View leaderboard →</a>
     <button class="again" id="againBtn" type="button">Play again (25 OIL)</button>
   </div></div>
 
