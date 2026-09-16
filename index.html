@@ -185,7 +185,7 @@
 
     <div class="overlay" id="overlay">
       <h2 id="ov-title">Bot Merge</h2>
-      <p id="ov-text">Bots rain down and speed up. Drag matching Bots together to merge and score. Survive 60 seconds!</p>
+      <p id="ov-text">Bots rain down and speed up. Drag matching Bots together to merge and score. Keep merging — it's game over when the board fills up!</p>
       <div class="result" id="ov-result"></div>
       <div id="ov-saverow" style="display:none;">
         <div class="initrow"><input id="initials" maxlength="3" placeholder="AAA" autocomplete="off" spellcheck="false" /></div>
@@ -221,7 +221,7 @@
   // ===== Shared constants (identical to the Free Rush loop) ==================
   var ARWEAVE_BASE='https://arweave.net/_cPSCheRvzVBlZK7QwM-3nXtteMdBbUn-zJhbGRlMmo';
   var LADDER=[106,355,710,940,1150,1620,860,2106,2480,357];
-  var CELLS=25, TOTAL=60000, COMBO_WINDOW=1400;
+  var CELLS=25, RAMP_MS=60000, COMBO_WINDOW=1400; // RAMP_MS: drop speed ramps to max over this long; the round is endless until the board fills
   function botForValue(v){ var idx=Math.min(Math.round(Math.log2(v))-1, LADDER.length-1); return LADDER[Math.max(0,idx)]; }
   function botImageHTML(n){ return '<img src="'+ARWEAVE_BASE+'/'+n+'.png" alt="Bot #'+n+'" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'#'+n+'\',className:\'img-fallback\'}));" />'; }
   var mem={}; var LS={ get:function(k){ try{return localStorage.getItem(k);}catch(e){return (k in mem)?mem[k]:null;} }, set:function(k,v){ try{localStorage.setItem(k,v);}catch(e){mem[k]=v;} } };
@@ -232,11 +232,12 @@
   var scoreEl=document.getElementById('score'), timeEl=document.getElementById('time'), topbotEl=document.getElementById('topbot');
   var fillEl=document.getElementById('timerfill'), comboEl=document.getElementById('combo');
   var cells=[], lastVal=new Array(CELLS).fill(-1), board=new Array(CELLS).fill(0);
-  var running=false, score=0, combo=0, comboExpire=0, startedAt=0, timeLeft=TOTAL, tickTimer=null, dropTimer=null;
+  var running=false, score=0, combo=0, comboExpire=0, startedAt=0, tickTimer=null, dropTimer=null;
 
   for(var i=0;i<CELLS;i++){ var c=document.createElement('div'); c.className='cell'; c.dataset.idx=i; cells.push(c); boardEl.appendChild(c); }
 
   function highest(){ var m=0; for(var i=0;i<CELLS;i++) if(board[i]>m) m=board[i]; return m; }
+  function filledCount(){ var n=0; for(var i=0;i<CELLS;i++) if(board[i]) n++; return n; }
   function paint(i,pop){
     if(board[i]===lastVal[i] && !pop) return;
     var c=cells[i], v=board[i];
@@ -257,23 +258,24 @@
   function scheduleDrop(){
     if(!running) return;
     var elapsed=Date.now()-startedAt;
-    var f=Math.min(1, elapsed/TOTAL);
+    var f=Math.min(1, elapsed/RAMP_MS);
     var interval=Math.max(480, 2000 - 1520*Math.pow(f, 2.2)); // gentle start, steep late ramp
     dropTimer=setTimeout(function(){ if(!running) return; placeDrop(); scheduleDrop(); }, interval);
   }
   function tick(){
-    var elapsed=Date.now()-startedAt; timeLeft=Math.max(0,TOTAL-elapsed);
-    var pct=timeLeft/TOTAL; fillEl.style.width=(pct*100)+'%';
-    fillEl.style.background = pct>0.5?'var(--green)':(pct>0.25?'var(--amber)':'var(--red)');
-    timeEl.textContent=Math.ceil(timeLeft/1000)+'s';
+    var elapsed=Date.now()-startedAt;
+    timeEl.textContent=Math.floor(elapsed/1000)+'s'; // count up: survival time
+    // Timer bar becomes a board-fill gauge: fuller board = fuller (redder) bar
+    var fillPct=filledCount()/CELLS; fillEl.style.width=(fillPct*100)+'%';
+    fillEl.style.background = fillPct<0.5?'var(--green)':(fillPct<0.75?'var(--amber)':'var(--red)');
     if(combo>0 && Date.now()>comboExpire){ combo=0; }
-    if(timeLeft<=0) endRound('time');
   }
 
   function startRound(){
     ensureAudio();
-    board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); score=0; combo=0; timeLeft=TOTAL; running=true;
+    board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); score=0; combo=0; running=true;
     boardEl.classList.remove('locked');
+    timeEl.textContent='0s'; fillEl.style.width='0%'; fillEl.style.background='var(--green)';
     paintAll(); updateScore(); updateTop();
     document.getElementById('overlay').classList.add('hidden');
     startedAt=Date.now();
@@ -285,7 +287,7 @@
 
   function endRound(reason){
     running=false; clearInterval(tickTimer); clearTimeout(dropTimer); sfxOver();
-    var elapsed=Math.min(TOTAL, Date.now()-startedAt);
+    var elapsed=Date.now()-startedAt; // survival time (no cap now that the round is endless)
     if(mode==='paid'){
       boardEl.classList.add('locked');
       Paid.handleRoundEnd({ score:score, top:highest(), timeMs:elapsed, reason:reason });
@@ -295,7 +297,7 @@
     var h=highest();
     var cur=parseInt(LS.get('botmerge_bestscore')||'0',10); var pb=score>cur; if(pb) LS.set('botmerge_bestscore',String(score));
     var ov=document.getElementById('overlay');
-    document.getElementById('ov-title').textContent = reason==='flooded'?'Flooded!':"Time's up!";
+    document.getElementById('ov-title').textContent = 'Board full!';
     document.getElementById('ov-text').textContent = pb?'New personal best! 🎉':'Nice merging.';
     document.getElementById('ov-result').innerHTML='Score <b>'+score+'</b> · Top Bot <b>#'+botForValue(h)+'</b>';
     document.getElementById('ov-saverow').style.display='block';
@@ -593,7 +595,7 @@
       hintEl.innerHTML='Drag a Bot onto a <b>matching</b> Bot before the board floods!';
       stopRound(); board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); paintAll(); boardEl.classList.remove('locked');
       document.getElementById('ov-title').textContent='Bot Merge';
-      document.getElementById('ov-text').textContent='Bots rain down and speed up. Drag matching Bots together to merge and score. Survive 60 seconds!';
+      document.getElementById('ov-text').textContent='Bots rain down and speed up. Drag matching Bots together to merge and score. Keep merging — it\'s game over when the board fills up!';
       document.getElementById('ov-result').innerHTML='';
       document.getElementById('ov-saverow').style.display='none';
       document.getElementById('startbtn').textContent='Tap to start';
