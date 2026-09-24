@@ -2,3 +2,6 @@
 test-ledger/
 leaderboard_rush.csv
 *.csv
+
+# working-source copy — never serve a second build of the game
+*-index.html
