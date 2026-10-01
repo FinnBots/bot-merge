@@ -297,10 +297,10 @@ canvas{ touch-action:none; }
       </nav>
     </footer>
 
-    <div class="overlay" id="overlay">
+    <div class="overlay" id="overOverlay">
       <h2 id="ov-title">Bot Merge</h2>
       <p id="ov-text">Bots rain down and speed up. Drag matching Bots together to merge and score. Keep merging — it's game over when the board fills up!</p>
-      <div class="result" id="ov-result"></div>
+      <div class="result" id="overCard"><span id="ov-result"></span><b id="oScore" hidden>0</b></div>
       <div id="ov-saverow" style="display:none;">
         <div class="initrow"><input id="initials" maxlength="3" placeholder="AAA" autocomplete="off" spellcheck="false" /></div>
         <button class="savebtn" id="save" type="button">Save score</button>
@@ -391,7 +391,7 @@ canvas{ touch-action:none; }
     boardEl.classList.remove('locked');
     timeEl.textContent='0s'; fillEl.style.width='0%'; fillEl.style.background='var(--green)';
     paintAll(); updateScore(); updateTop();
-    document.getElementById('overlay').classList.add('hidden');
+    document.getElementById('overOverlay').classList.add('hidden');
     startedAt=Date.now();
     placeDrop(); placeDrop(); placeDrop();
     clearInterval(tickTimer); tickTimer=setInterval(tick,100);
@@ -410,10 +410,16 @@ canvas{ touch-action:none; }
     // --- Free: device-only leaderboard, unchanged ---
     var h=highest();
     var cur=parseInt(LS.get('botmerge_bestscore')||'0',10); var pb=score>cur; if(pb) LS.set('botmerge_bestscore',String(score));
-    var ov=document.getElementById('overlay');
+    var ov=document.getElementById('overOverlay');
+    ov.classList.add('show');      // the class the shared stickiness layer watches
     document.getElementById('ov-title').textContent = 'Board full!';
     document.getElementById('ov-text').textContent = pb?'New personal best! 🎉':'Nice merging.';
     document.getElementById('ov-result').innerHTML='Score <b>'+score+'</b> · Top Bot <b>#'+botForValue(h)+'</b>';
+    /* #oScore is STATIC markup, not written into ov-result: the shared
+       stickiness layer binds once at page load, so an id created later inside
+       an innerHTML string does not exist when it looks. It carries the score
+       alone — "Top Bot #12" in the same element would be read as part of it. */
+    document.getElementById('oScore').textContent = score;
     document.getElementById('ov-saverow').style.display='block';
     document.getElementById('save').textContent='Save score'; document.getElementById('save').disabled=false;
     document.getElementById('initials').value='';
@@ -695,7 +701,7 @@ canvas{ touch-action:none; }
   // ===== Mode switching (kid-safety: Paid is a deliberate opt-in) =============
   var modeFreeBtn=document.getElementById('modeFree'), modeRankedBtn=document.getElementById('modeRanked');
   var titleEl=document.getElementById('title'), hintEl=document.getElementById('hint');
-  var overlayEl=document.getElementById('overlay'), confirmSheet=document.getElementById('confirmSheet');
+  var overlayEl=document.getElementById('overOverlay'), confirmSheet=document.getElementById('confirmSheet');
 
   function lockModeToggle(lock){ modeFreeBtn.disabled=!!lock; modeRankedBtn.disabled=!!lock; }
 
@@ -708,6 +714,7 @@ canvas{ touch-action:none; }
       document.getElementById('paidActions').classList.add('hidden');
       hintEl.innerHTML='Drag a Bot onto a <b>matching</b> Bot before the board floods!';
       stopRound(); board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); paintAll(); boardEl.classList.remove('locked');
+      overlayEl.classList.remove('show');   // intro, not a result: never bank a best here
       document.getElementById('ov-title').textContent='Bot Merge';
       document.getElementById('ov-text').textContent='Bots rain down and speed up. Drag matching Bots together to merge and score. Keep merging — it\'s game over when the board fills up!';
       document.getElementById('ov-result').innerHTML='';
@@ -724,7 +731,7 @@ canvas{ touch-action:none; }
       document.getElementById('playBtn').classList.remove('hidden');
       hintEl.innerHTML='25 OIL entry \u00b7 one scored run \u00b7 a <b>fun</b> leaderboard (not verified). Bot holders \u00d71.5.';
       stopRound(); board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); paintAll(); boardEl.classList.add('locked');
-      overlayEl.classList.add('hidden');
+      overlayEl.classList.add('hidden'); overlayEl.classList.remove('show');
     }
   }
 
@@ -745,6 +752,20 @@ canvas{ touch-action:none; }
     paintAll();
   })();
 })();
+</script>
+<script>
+/* Bot Merge kept its own personal best (botmerge_bestscore) long before the
+   shared stickiness layer existed. Seed the layer's key from it ONCE so the
+   topbar chip and the game's own "New personal best!" agree instead of showing
+   two different numbers to the same player. Both update from the same score
+   afterwards, so they stay in step. */
+try{
+  var _fbK = 'fb:' + (location.hostname.split('.')[0] || 'game') + ':best';
+  if(localStorage.getItem(_fbK) == null){
+    var _old = parseInt(localStorage.getItem('botmerge_bestscore') || '0', 10);
+    if(_old > 0) localStorage.setItem(_fbK, JSON.stringify(_old));
+  }
+}catch(e){}
 </script>
 <script id="fb-sticky">
 /* ==========================================================================
