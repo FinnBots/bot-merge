@@ -571,7 +571,7 @@ canvas{ touch-action:none; }
     }
 
     // ---- score memo (RUSH — no seed, no move-log, no replay) -----------------
-    function buildScoreMemo(res){ return MEMO_TAG+'|score|sig='+String(entrySig).slice(0,32)+'|score='+res.score+'|top='+res.top+'|time='+res.timeMs; }
+    function buildScoreMemo(res){ return MEMO_TAG+'|score|sig='+String(entrySig).slice(0,32)+'|score='+res.score+'|top='+res.top+'|time='+Math.round(res.timeMs); }
 
     // ---- flow glue ----------------------------------------------------------
     function onEntryConfirmed(sig){ entrySig=sig; busy=false; lockModeToggle(true); playBtn.classList.add('hidden'); startRound(); }
