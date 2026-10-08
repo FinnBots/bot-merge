@@ -789,11 +789,17 @@ canvas{ touch-action:none; }
     if(HEADLESS) return;              /* a gate drives the sim, not the card */
     sfxOver();
     var elapsed=Math.round(G.elapsed); // survival time (no cap now that the round is endless)
-    if(mode==='paid'){
-      boardEl.classList.add('locked');
-      Paid.handleRoundEnd({ score:G.score, top:highest(), timeMs:elapsed, reason:reason });
-      return;
-    }
+    /* EVERY run end goes to the controller, free or paid — the shape the other
+       seventeen paid games use. The controller decides: it returns true when it
+       has taken the run over (paid), false when the game should show its own
+       card (free). This game used to branch on `mode` out here and call the
+       controller only in paid mode, so a free run end was invisible — and a
+       free run end is the only kind `verify-scorepost` can drive, which is why
+       the gate that proves 25 OIL buys a recording leaderboard spot could never
+       see this game's score leave the engine.
+       The paid path below is unchanged: same object, same lock, same call. */
+    var res = { score:G.score, top:highest(), timeMs:elapsed, reason:reason };
+    if(Paid.onRunEnd(res)) return;
     // --- Free: device-only leaderboard, unchanged ---
     var h=highest();
     var cur=parseInt(LS.get('botmerge_bestscore')||'0',10); var pb=G.score>cur; if(pb) LS.set('botmerge_bestscore',String(G.score));
@@ -1119,8 +1125,28 @@ canvas{ touch-action:none; }
       $('againBtn').addEventListener('click', onAgain);
     }
 
-    return { init:init, resume:resume, handleRoundEnd:handleRoundEnd, checkBalance:function(){ if(wallet.pubkey) checkBalance(wallet.pubkey); } };
+    /* The one door the engine knocks on at every run end. TRUE means "I have
+       taken it from here" (paid), FALSE means "show your own card" (free) —
+       and the paid branch is exactly what endRound used to do inline. */
+    function onRunEnd(res){
+      if(mode!=='paid') return false;
+      boardEl.classList.add('locked');
+      handleRoundEnd(res);
+      return true;
+    }
+    return { init:init, resume:resume, onRunEnd:onRunEnd, handleRoundEnd:handleRoundEnd, checkBalance:function(){ if(wallet.pubkey) checkBalance(wallet.pubkey); } };
   })();
+  /* The paid controller, under the name every other paid game on the roster
+     already uses (BotJumperPaid, BotFordPaid, MrBotPaid, ...). Bot Merge was
+     the ONLY one keeping it as a closure variable, and the cost of that was
+     that `verify-scorepost` had nothing to hook: the gate that proves 25 OIL
+     buys a leaderboard spot which actually RECORDS could only ever check this
+     game's memo by construction, never by driving a real run to its end.
+     It does put the controller on the console of a paid build. The RUSH board
+     is a fun ranking and an OIL sink and says so in this file — it is not
+     verified or provably fair — and anyone with devtools could already reach
+     these functions. Founder decision, 2026-10-08. */
+  if(!HEADLESS) window.BotMergePaid = Paid;
 
   // ===== Mode switching (kid-safety: Paid is a deliberate opt-in) =============
   var modeFreeBtn=$id('modeFree'), modeRankedBtn=$id('modeRanked');
