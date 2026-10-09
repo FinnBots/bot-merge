@@ -915,14 +915,14 @@ canvas{ touch-action:none; }
   // ===== ranking + an OIL sink. It is NOT verified / provably fair. ==========
   // ===========================================================================
   var Paid=(function(){
-    var TEST_MODE = false;   // <-- flip to false ONLY with Founder confirm in this run's output
+    var TEST_MODE = false;    // <-- flip to false ONLY with Founder confirm in this run's output
     var CFG = TEST_MODE ? {
       RPC: 'http://127.0.0.1:8899',
       TOKEN_PROGRAM: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
       MEMO_PROGRAM: 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
-      OIL_MINT: 'H97Qcw7ao5yisvE5dRGLKnMhcCsrojFBNxU5ALUJ3SL2',
+      OIL_MINT: '9B5ZQifZQc3ykhnZhA9m8DFoNY5uaTwqHGNZMah6eK8Y',
       TREASURY: '8tzZzNiGkE2kYXhUSauNEUyVHiaWBt5pBagg7CHKPNBM',
-      TREASURY_TOKEN_ACCOUNT: '7XSE68LH5rekFX9JeyguTsUMmkDm3egCWkSXpnfLAY1J',
+      TREASURY_TOKEN_ACCOUNT: '3s1SQ7JZmti4PfhVsb7LCTn9q5ZhRBMaH6v2vsrVZeg6',
       ENTRY_FEE: 25, POST_FEE: 1, DECIMALS: 2
     } : {
       RPC: 'https://finnbots-rpc.mart-kin1000.workers.dev',
