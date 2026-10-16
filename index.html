@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Bot Merge — Rush</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jersey+15&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --plum:#5f4c57; --plum-deep:#3e323a; --bg-soft:#fdf3e7; --card:#fffaf3; --ink:#2a2230;
+    --muted:#6e6470; --electric:#3a6ff7; --amber:#f2a03d; --green:#34c759; --red:#c0392b; --line:rgba(95,76,87,0.16);
+    --shadow-sm:0 1px 3px rgba(42,34,48,0.10); --shadow-md:0 6px 18px rgba(42,34,48,0.12); --shadow-lg:0 14px 34px rgba(42,34,48,0.22);
+    --r-sm:8px; --r-md:10px; --r-lg:16px; --r-xl:20px; --r-pill:9999px; --smooth:cubic-bezier(.4,0,.2,1);
+    --font-display:'Jersey 15', ui-monospace, monospace;
+    --font-body:'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg-soft:#221b20; --card:#2f2730; --ink:#f4eef2; --muted:#b9aab3; --line:rgba(255,255,255,0.12);
+      --shadow-md:0 6px 18px rgba(0,0,0,0.42); --shadow-lg:0 14px 34px rgba(0,0,0,0.55); }
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  html{overflow:hidden;}
+  body{ font-family:var(--font-body); background:var(--bg-soft); color:var(--ink); line-height:1.3; -webkit-font-smoothing:antialiased;
+    display:flex; justify-content:center; align-items:flex-start; overflow:hidden; height:100vh; height:100dvh;
+    padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+  .wrap{ width:100%; max-width:min(1400px, 96vw); height:100%; display:flex; flex-direction:column; gap: clamp(5px, 1.1dvh, 9px); position:relative; }
+
+  .testBanner{ flex:0 0 auto; background:var(--amber); color:#4a2c10; font-weight:700; text-align:center; font-size:12px; padding:5px; border-radius:var(--r-sm); }
+  .testBanner.hidden{ display:none; }
+
+  .topbar{ flex:0 0 auto; display:flex; align-items:center; gap:8px; background:var(--card); border-radius:var(--r-lg); padding:9px 13px; box-shadow:var(--shadow-sm); }
+  .eyebrow{ font-family:var(--font-display); font-size:clamp(10px,1.2vw,14px); letter-spacing:.5px; color:var(--plum); background:rgba(95,76,87,0.10); padding:6px 10px; border-radius:var(--r-pill); flex:0 0 auto; white-space:nowrap; }
+  h1{ font-family:var(--font-display); font-size:clamp(16px,2.5vw,26px); color:var(--ink); flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .icon{ flex:0 0 auto; appearance:none; border:none; cursor:pointer; width:clamp(30px,3vw,38px); height:clamp(30px,3vw,38px); border-radius:50%; background:rgba(95,76,87,0.10); color:var(--plum); font-size:16px; display:flex; align-items:center; justify-content:center; }
+  button:focus-visible{ outline:3px solid var(--electric); outline-offset:2px; }
+
+  .modebar{ flex:0 0 auto; display:flex; gap:6px; background:var(--card); border-radius:var(--r-pill); padding:4px; box-shadow:var(--shadow-sm); }
+  .modepill{ flex:1; appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:700; font-size:13px; padding:8px 10px; border-radius:var(--r-pill); background:transparent; color:var(--muted); }
+  .modepill.active{ background:var(--plum); color:#fff; }
+  .modepill:disabled{ opacity:.5; cursor:default; }
+
+  .walletbar{ flex:0 0 auto; background:var(--card); border-radius:var(--r-lg); padding:9px 12px; box-shadow:var(--shadow-sm); display:flex; flex-direction:column; gap:6px; }
+  .walletbar.hidden{ display:none; }
+  .walletrow{ display:flex; align-items:center; gap:8px; }
+  .walletrow .lbl{ font-weight:600; font-size:12.5px; flex:1; }
+  .connect-btn{ appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:600; font-size:13px; background:var(--plum); color:#fff; padding:8px 14px; border-radius:var(--r-sm); }
+  .connect-btn:disabled{ opacity:.65; cursor:default; }
+  .wallet-status{ font-size:12.5px; color:var(--muted); }
+  .wallet-status.hidden{ display:none; }
+  .wallet-status.ok{ color:var(--ink); } .wallet-status.warn{ color:var(--red); }
+  .wallet-status .addr{ font-family:ui-monospace,monospace; color:var(--plum); }
+
+  .timerbar{ flex:0 0 auto; height:10px; background:rgba(95,76,87,0.15); border-radius:var(--r-pill); overflow:hidden; }
+  .timerfill{ height:100%; width:100%; background:var(--green); border-radius:var(--r-pill); transition:width .12s linear, background .3s; }
+
+  .stats{ flex:0 0 auto; display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:8px; }
+  .stat{ background:var(--card); border-radius:var(--r-md); padding:7px 6px; box-shadow:var(--shadow-sm); text-align:center; }
+  .stat .k{ font-size:clamp(9px,1vw,11px); color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+  .stat .v{ font-family:var(--font-display); font-size:clamp(16px,2.4vw,24px); color:var(--ink); line-height:1.1; margin-top:2px; }
+  .stat .v small{ font-family:var(--font-body); font-size:clamp(9px,1vw,11px); color:var(--muted); font-weight:600; }
+  .stat.bump{ animation:bump .3s var(--smooth); }
+  @keyframes bump{ 0%{transform:scale(1);} 40%{transform:scale(1.12);} 100%{transform:scale(1);} }
+
+  .boardwrap{ flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-height:0; position:relative; }
+  .board{ width:min(100%, 62dvh); aspect-ratio:1; background:var(--plum); border-radius:var(--r-lg); padding:clamp(5px,1.2vw,8px); display:grid; grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(5,1fr); gap:clamp(4px,1vw,7px); box-shadow:var(--shadow-md); touch-action:none; user-select:none; -webkit-user-select:none; }
+  .board.locked{ opacity:.5; pointer-events:none; }
+  .cell{ position:relative; background:rgba(255,255,255,0.06); border-radius:var(--r-sm); overflow:hidden; }
+  .cell.filled{ box-shadow:inset 0 0 0 2px rgba(255,255,255,0.16); cursor:grab; }
+  .cell img, .cell .img-fallback{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; -webkit-user-drag:none; }
+  .cell .img-fallback{ display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:clamp(10px,1.6vw,16px); color:#fff; background:var(--plum-deep); }
+  .val{ position:absolute; left:3px; bottom:2px; font-family:var(--font-display); font-size:clamp(11px,2.2vw,18px); color:#fff; background:rgba(20,14,20,0.6); padding:0 5px; border-radius:var(--r-pill); pointer-events:none; }
+  .cell.dragging{ opacity:.35; }
+  /* The KEYBOARD cursor. The board was drag-only, so on a laptop without a
+     mouse-drag there was no way to play at all — and no way for a gate to
+     drive it either, because a drag is a PAIR of cell indices and no generic
+     harness can hold two of those at once. */
+  .cell.kcur{ box-shadow:inset 0 0 0 3px var(--paper, #fff); }
+  .cell.kheld{ outline:3px dashed var(--amber); outline-offset:-3px; opacity:.6; }
+  .cell.target{ box-shadow:inset 0 0 0 3px var(--amber); }
+  .cell.badtarget{ box-shadow:inset 0 0 0 3px var(--red); }
+  .cell.pop{ animation:pop .22s var(--smooth); }
+  @keyframes pop{ 0%{transform:scale(.55);} 65%{transform:scale(1.18);} 100%{transform:scale(1);} }
+
+  .ghost{ position:fixed; z-index:50; pointer-events:none; border-radius:var(--r-sm); overflow:hidden; box-shadow:var(--shadow-lg); }
+  .ghost img{ width:100%; height:100%; object-fit:cover; }
+  .ghost .val{ font-size:16px; }
+  .pluspop{ position:fixed; z-index:55; pointer-events:none; font-family:var(--font-display); color:var(--amber); text-shadow:0 2px 6px rgba(0,0,0,.5); animation:rise .7s var(--smooth) forwards; }
+  @keyframes rise{ 0%{opacity:1; transform:translateY(0) scale(1);} 100%{opacity:0; transform:translateY(-38px) scale(1.3);} }
+  .combo{ position:absolute; top:6px; left:50%; transform:translateX(-50%); z-index:40; font-family:var(--font-display); font-size:clamp(18px,4vw,30px); color:#fff; background:var(--amber); padding:3px 14px; border-radius:var(--r-pill); box-shadow:var(--shadow-md); opacity:0; }
+  .combo.show{ animation:comboPulse .5s var(--smooth); }
+  @keyframes comboPulse{ 0%{opacity:0; transform:translateX(-50%) scale(.6);} 40%{opacity:1; transform:translateX(-50%) scale(1.1);} 100%{opacity:1; transform:translateX(-50%) scale(1);} }
+
+  .actions{ flex:0 0 auto; display:flex; gap:8px; }
+  .actions.hidden{ display:none; }
+  .play,.post{ flex:1; appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:700; font-size:15px; padding:12px; border-radius:var(--r-md); box-shadow:var(--shadow-sm); }
+  .play{ background:var(--amber); color:#4a2c10; } .play:disabled{ background:var(--line); color:var(--muted); box-shadow:none; cursor:default; }
+  .post{ background:var(--plum); color:#fff; } .post.hidden,.play.hidden{ display:none; }
+
+  .hint{ flex:0 0 auto; text-align:center; font-size:clamp(10px,1.3vw,13px); color:var(--muted); }
+  .hint b{ color:var(--ink); }
+  .brand{ flex:0 0 auto; text-align:center; font-family:var(--font-display); font-size:clamp(10px,1.2vw,13px); color:var(--muted); letter-spacing:.5px; }
+  /* FDL marketing footer + posted-sheet leaderboard link (Chat 11.10) */
+  .fb-foot{ flex:0 0 auto; text-align:center; }
+  .fb-foot .tag{ font-family:var(--font-display); font-size:clamp(10px,1.2vw,12px); color:var(--muted); letter-spacing:.5px; }
+  .fb-foot nav{ margin-top:3px; display:flex; gap:9px; justify-content:center; align-items:center; flex-wrap:wrap; }
+  .fb-foot nav a{ font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--muted); text-decoration:none; }
+  .fb-foot nav a:hover{ color:var(--plum); }
+  .fb-foot nav span{ color:var(--muted); opacity:.45; font-size:11px; }
+  .panel a.ghostbtn{ text-decoration:none; text-align:center; margin-bottom:8px; box-sizing:border-box; }
+
+  .overlay{ position:absolute; inset:0; background:rgba(62,50,58,0.92); border-radius:var(--r-lg); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; z-index:70; padding:20px; }
+  .overlay.hidden{ display:none; }
+  .overlay h2{ font-family:var(--font-display); font-size:clamp(26px,6vw,40px); color:#fff; margin-bottom:6px; }
+  .overlay p{ color:rgba(255,255,255,0.82); font-size:clamp(13px,1.7vw,16px); margin-bottom:6px; max-width:280px; }
+  .overlay .result{ color:#fff; font-size:clamp(15px,2vw,18px); margin:8px 0 4px; }
+  .overlay .result b{ color:var(--amber); }
+  /* ---- the RUN-OVER card (2026-10-02) ------------------------------------
+     Bot Merge used to end a run by rewriting its START screen in place: one
+     overlay, a hidden #oScore, and a "Play again" relabel of the start button.
+     The shared ending screen (templates/outro-layer.*) correctly refused to
+     fire on it, because "the overlay became visible" is not "the run ended"
+     when the same overlay IS the start screen. So the run end gets its own
+     card in the chassis shape — and it is a real CARD, light on --card and
+     dark when the scheme is, exactly like every other game, so the shared
+     layer's own colours land right with no per-game exception. */
+  .overlay .card{ background:var(--card); color:var(--ink); border-radius:var(--r-lg);
+    box-shadow:var(--shadow-lg); width:100%; max-width:330px; padding:18px 20px;
+    text-align:center; max-height:100%; overflow-y:auto; }
+  .overlay .card h2{ color:var(--ink); font-size:clamp(22px,5vw,30px); margin-bottom:2px; }
+  .overlay .card p{ color:var(--ink); max-width:none; margin-bottom:0; }
+  .overlay .card .big{ font-family:var(--font-display); font-size:21px; margin:6px 0 2px; color:var(--ink); }
+  .overlay .card .big span{ color:var(--amber); }
+  .overlay .card .bigbtn{ font-size:clamp(17px,2.6vw,21px); padding:11px 26px; margin-top:10px; }
+  .overlay .card .ghostbtn{ appearance:none; border:1px solid var(--line); cursor:pointer;
+    font-family:var(--font-body); font-weight:600; font-size:13.5px; background:transparent;
+    color:var(--ink); padding:8px 18px; border-radius:var(--r-pill); margin-top:8px; }
+  .overlay .card .lb h3{ color:var(--ink); }
+  .overlay .card .lb li{ color:var(--ink); }
+  .overlay .card .lb li:nth-child(odd){ background:var(--line); }
+  .bigbtn{ appearance:none; border:none; cursor:pointer; font-family:var(--font-display); font-size:clamp(20px,3.5vw,26px); background:var(--amber); color:#4a2c10; padding:13px 34px; border-radius:var(--r-pill); box-shadow:var(--shadow-md); margin-top:14px; }
+  .initrow{ display:flex; gap:8px; justify-content:center; margin:12px 0 4px; }
+  .initrow input{ width:120px; text-transform:uppercase; text-align:center; font-family:var(--font-display); font-size:20px; letter-spacing:4px; padding:7px; border:none; border-radius:var(--r-sm); background:#fff; color:var(--ink); }
+  .savebtn{ appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:600; font-size:14px; background:#fff; color:var(--plum); padding:8px 18px; border-radius:var(--r-sm); }
+  .lb{ width:100%; max-width:280px; margin-top:12px; }
+  .lb h3{ font-family:var(--font-display); font-size:13px; color:rgba(255,255,255,0.85); margin-bottom:5px; }
+  .lb ol{ list-style:none; }
+  .lb li{ display:flex; gap:8px; font-size:12.5px; color:#fff; padding:4px 8px; border-radius:var(--r-sm); }
+  .lb li:nth-child(odd){ background:rgba(255,255,255,0.08); }
+  .lb .rank{ font-family:var(--font-display); color:var(--amber); width:18px; }
+  .lb .who{ font-family:var(--font-display); letter-spacing:1px; width:40px; }
+  .lb .sc{ margin-left:auto; }
+  .lb .me{ box-shadow:inset 0 0 0 2px var(--amber); }
+
+  .sheet{ position:fixed; inset:0; background:rgba(42,34,48,0.6); display:none; align-items:center; justify-content:center; padding:18px; z-index:80; }
+  .sheet.show{ display:flex; }
+  .panel{ width:100%; max-width:340px; background:var(--card); border-radius:var(--r-xl); padding:22px; box-shadow:var(--shadow-lg); text-align:center; }
+  .panel h2{ font-family:var(--font-display); font-size:24px; margin-bottom:8px; }
+  .panel p{ font-size:14px; color:var(--muted); margin-bottom:14px; } .panel p b{ color:var(--ink); }
+  .panel .again{ appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:700; font-size:15px; background:var(--amber); color:#4a2c10; padding:11px 22px; border-radius:var(--r-sm); display:block; width:100%; margin-bottom:8px; }
+  .panel .ghostbtn{ appearance:none; border:1px solid var(--line); cursor:pointer; font-family:var(--font-body); font-weight:600; font-size:14px; background:transparent; color:var(--plum); padding:9px 18px; border-radius:var(--r-sm); display:block; width:100%; }
+</style>
+<style id="fb-brand">
+/* ===== FINNBOTS BRAND LAYER v1 (2026-09-24) ==========================
+   Append-only override, injected as <style id="fb-brand"> AFTER every other
+   style block so it wins without editing a single line of a game's own CSS.
+   Three jobs:
+     1. BRAND  — the FinnBots lockup (bot mark + FINN/BOTS wordmark) in the topbar.
+     2. CABINET — the canvas reads as an arcade screen: bezel, amber rim light, glow.
+     3. THEME  — dark-mode parity with the hub (games.finnstergram.com adapts, the
+                 games did not, so hub -> game was a light/dark slap in the face).
+   Source of truth: factory/templates/brand-layer.css. Never hand-edit a game copy;
+   change it here and re-run apply-brand.sh. ==================================== */
+:root{
+  --fb-amber:#f2a03d; --fb-plum:#5f4c57; --fb-plum-deep:#3e323a;
+  --fb-screen:#241b28; --fb-bezel:#3e323a; --fb-rim:rgba(242,160,61,.45);
+  --fb-ink:#3e323a; --fb-surface:rgba(255,255,255,.55);
+}
+
+/* ---- 1. BRAND LOCKUP --------------------------------------------------- */
+.fb-mark{
+  display:inline-flex; align-items:center; gap:6px; flex:none;
+  text-decoration:none; color:var(--fb-plum); line-height:1;
+  padding:2px 4px; border-radius:999px; -webkit-tap-highlight-color:transparent;
+}
+.fb-mark:hover{ color:var(--fb-plum-deep); }
+.fb-mark:focus-visible{ outline:3px solid var(--electric,#3a6ff7); outline-offset:2px; }
+.fb-bot{ width:22px; height:22px; flex:none; display:block; }
+.fb-word{
+  font-family:var(--disp,'Jersey 15',system-ui,sans-serif);
+  font-size:16px; letter-spacing:.5px; color:currentColor; white-space:nowrap;
+}
+.fb-word i{ font-style:normal; color:var(--fb-amber); }
+/* Phones: the topbar also carries the mode pills + icon buttons, so drop the
+   wordmark and keep the bot mark rather than letting the row overflow. */
+@media (max-width:430px){ .fb-word{ display:none; } }
+body.is-portrait .fb-bot{ width:20px; height:20px; }
+
+</style>
+<style id="fb-device">
+/* ==========================================================================
+   FinnBots DEVICE LAYER — ONE scaling contract for laptop, tablet and phone.
+   Founder rule, 2026-09-25: "all games ... need to be playable on Laptops,
+   tablets and phones."
+
+   SOURCE OF TRUTH. Never hand-edit a game's copy — edit this file and re-run
+   apply-device.js across the roster (same discipline as brand-layer.css).
+
+   It is injected as the LAST <style> in <head>, AFTER the brand layer, so it
+   wins by source order and touches no existing CSS line. Everything below
+   section 3 assumes chassis markup; apply-device.js --safe stops before it for
+   the non-chassis games whose class names mean something else.
+
+   THE MODEL, in one line: the page is exactly one visible viewport tall, the
+   chrome is whatever is left after the play surface has taken what it needs,
+   and the controls are always reachable by the thumb that owns them.
+   ========================================================================== */
+
+/* ---- 1. the page fills the VISIBLE viewport ------------------------------
+   100vh on a phone is the viewport WITHOUT the browser's collapsing chrome:
+   a vh-sized column is taller than the screen, so the controls sit under the
+   address bar and the canvas is cut off. dvh tracks the real thing, and the
+   safe-area insets keep the notch and the home indicator off the buttons. */
+:root{
+  --fb-safe-t: env(safe-area-inset-top, 0px);
+  --fb-safe-b: env(safe-area-inset-bottom, 0px);
+  --fb-safe-l: env(safe-area-inset-left, 0px);
+  --fb-safe-r: env(safe-area-inset-right, 0px);
+  --fb-tap: 48px;                     /* 44 is the accessibility floor; 48 is comfortable */
+}
+html{ height:100%; }
+body{ min-height:100svh; overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+@supports (height:100dvh){ body{ min-height:100dvh; } }
+
+/* ---- 2. touch behaviour -------------------------------------------------
+   Without these a double-tap on a control zooms the page, a long press pops a
+   selection bubble mid-game, and a drag on the canvas pulls the page to
+   refresh. All three are "the game is broken" to a player on a phone. */
+.ctl,.btn,.again,.ghostbtn,.modepill,.iconbtn,button{
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+  user-select:none; -webkit-user-select:none;
+}
+canvas{ touch-action:none; }
+
+/* ---- 3. hit targets on anything with a finger --------------------------- */
+@media (pointer:coarse){
+  .ctl{ min-width:var(--fb-tap); min-height:var(--fb-tap); }
+  .btn,.again,.ghostbtn{ min-height:var(--fb-tap); }
+  .modepill{ min-height:34px; }
+}
+
+
+</style>
+<style id="fb-outro-css">
+/* ==========================================================================
+   FinnBots OUTRO LAYER — the ending screen.  Founder, 2026-10-02, verbatim:
+   "there need to be a cool ending screen to games not just they end or game
+   over".
+
+   SOURCE OF TRUTH. Injected by apply-outro.js as <style id="fb-outro-css">,
+   last in <head> so it lands after the brand and device layers and wins by
+   source order. Never hand-edit a game's copy: edit this file and re-run the
+   injector across the roster.
+
+   What was there before: the chassis run-over card is a RECEIPT. "RUN OVER",
+   one score, one time, a retry button — identical whether the player cleared
+   the last round or walked into the first enemy. Nothing resolves, nothing is
+   celebrated, and the score has nothing to sit beside, so a good run and a bad
+   run feel the same. This layer turns that receipt into the four beats an
+   arcade ending actually has: a VERDICT that distinguishes winning from dying,
+   a TALLY that counts up, a RANK the run earned against the real board, and a
+   HOOK back into the next run.
+
+   Rules it is built to:
+     - every rule is scoped under .fb-outro or a body.fb-outro-* state, so a
+       game without the layer's own nodes is untouched. No existing selector is
+       redefined.
+     - the chassis card's own furniture stays in the DOM and keeps its text:
+       #oScore still holds the final score for the stickiness layer, the score
+       memo and the gates that read it. We hide the plain readout and draw our
+       own beside it, we never retype theirs.
+     - laptop / tablet / phone from ONE layer (Founder, 2026-09-25). The card is
+       height-bound on a landscape phone, so there is a compact mode at
+       max-height:560px that drops the hero and tightens the tally rather than
+       scrolling.
+     - prefers-reduced-motion kills every animation, and the ending still reads:
+       the tally lands on its final value, the rank bar is drawn full.
+   ========================================================================== */
+
+/* ---- 1. the outro block inside the existing card --------------------- */
+.fb-outro{ display:block; text-align:left; margin:10px 0 2px; }
+.fb-outro[hidden]{ display:none; }
+
+/* the chassis ".big" score readout: kept in the DOM, hidden from view, because
+   the tally below says the same number with ceremony. visibility, not display:
+   a display:none subtree reports zero size and two gates measure this node. */
+.fb-outro-on .card .big{ position:absolute; width:1px; height:1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; }
+/* the per-game stat line is harvested into tally rows, so the original would be
+   a duplicate */
+.fb-outro-on .card > p.fb-outro-src{ display:none; }
+
+/* ---- 2. the verdict band -------------------------------------------- */
+.fb-outro-kicker{ display:block; font-family:var(--body,system-ui); font-size:10.5px;
+  letter-spacing:.18em; text-transform:uppercase; font-weight:700;
+  color:inherit; opacity:.6; margin:0 0 2px; text-align:center; }
+.fb-outro-win .fb-outro-kicker{ color:var(--amber,#f2a03d); opacity:1; }
+
+/* ---- 3. the hero. Founder, 2026-09-25: "the hero needs to be Bot 106" ---
+   He is the one who just played the run, so he is the one on the ending
+   screen: lit and lifted on a clear, dimmed and tilted on a loss. */
+.fb-outro-hero{ display:block; margin:6px auto 8px; width:76px; height:76px;
+  object-fit:contain; image-rendering:auto;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+/* `display:block` on a class BEATS the UA's `[hidden]` rule, so the hero the
+   layer hides on a decode error was still laid out — and a game that ships no
+   hero PNG (Bot Merge) drew a broken-image box in the middle of its ending.
+   Caught by playing the one game on the roster without the asset. */
+.fb-outro-hero[hidden]{ display:none; }
+.fb-outro-win .fb-outro-hero{
+  animation:fb-outro-pop .5s cubic-bezier(.2,1.5,.4,1) both;
+  filter:drop-shadow(0 0 14px rgba(242,160,61,.75)) drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+.fb-outro-end .fb-outro-hero{ transform:rotate(-7deg); opacity:.82; }
+@keyframes fb-outro-pop{ from{ transform:scale(.4) translateY(14px); opacity:0 }
+                           to{ transform:none; opacity:1 } }
+
+/* ---- 4. the tally ---------------------------------------------------- */
+.fb-outro-tally{ list-style:none; margin:0; padding:0; }
+.fb-outro-tally li{ display:flex; align-items:baseline; justify-content:space-between;
+  gap:10px; font-size:12.5px; line-height:1.25; padding:3px 0;
+  color:inherit;
+  border-bottom:1px dashed rgba(128,128,128,.3);
+  opacity:0; transform:translateY(4px);
+  animation:fb-outro-row .22s ease-out both; }
+.fb-outro-tally li b{ font-family:var(--disp,system-ui); font-size:14px; font-weight:400;
+  color:inherit; white-space:nowrap; }
+.fb-outro-tally li i{ font-style:normal; letter-spacing:.06em; text-transform:uppercase;
+  font-size:10.5px; font-weight:700; color:inherit; opacity:.62; }
+@keyframes fb-outro-row{ to{ opacity:1; transform:none } }
+
+/* the total. This is the line the whole screen exists to deliver, so it is the
+   only thing on the card in the display face at full size. */
+.fb-outro-total{ display:flex; align-items:baseline; justify-content:space-between;
+  gap:10px; margin:8px 0 2px; padding-top:7px; border-top:2px solid rgba(128,128,128,.4); }
+.fb-outro-total i{ font-style:normal; font-family:var(--body,system-ui); font-size:11px;
+  letter-spacing:.16em; text-transform:uppercase; font-weight:700;
+  color:inherit; opacity:.62; }
+.fb-outro-total b{ font-family:var(--disp,system-ui); font-size:30px; line-height:1;
+  color:var(--amber,#f2a03d); font-weight:400;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; }
+.fb-outro-counting .fb-outro-total b{ color:inherit; }
+
+/* ---- 5. the rank the run earned ------------------------------------- */
+.fb-outro-rank{ margin:9px 0 0; }
+.fb-outro-rank .fb-outro-title{ display:flex; align-items:center; justify-content:space-between;
+  gap:8px; font-family:var(--disp,system-ui); font-size:15px; line-height:1.1;
+  color:inherit; }
+.fb-outro-rank .fb-outro-title em{ font-style:normal; font-family:var(--body,system-ui);
+  font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:inherit; opacity:.62; white-space:nowrap; }
+.fb-outro-bar{ position:relative; height:7px; margin:6px 0 0; border-radius:999px;
+  background:rgba(128,128,128,.28); overflow:hidden; }
+.fb-outro-bar span{ position:absolute; inset:0 auto 0 0; width:0;
+  border-radius:999px; background:var(--amber,#f2a03d);
+  transition:width .7s cubic-bezier(.2,.8,.3,1); }
+.fb-outro-note{ display:block; margin:5px 0 0; font-size:11.5px; line-height:1.4;
+  color:inherit; opacity:.75; }
+.fb-outro-note b{ color:inherit; font-weight:700; }
+
+/* ---- 5b. the chassis button row ------------------------------------
+   The stickiness layer inserts its run-line immediately before #retryBtn, so
+   on a game whose buttons live in a flex .btnrow (BotFord) the line becomes a
+   FLEX ITEM and sits beside the button instead of above it. It was tolerable
+   on the old two-line card and looks broken under a full ending screen, so
+   give it its own row — scoped to .fb-outro-on, so a game without this layer
+   keeps exactly the layout it shipped with. */
+.fb-outro-on .fb-runline small{ display:block; }
+.fb-outro-on .card .btnrow{ flex-wrap:wrap; justify-content:center; }
+.fb-outro-on .card .btnrow > .fb-runline{ flex:1 0 100%; margin:0 0 4px; text-align:center; }
+
+/* ---- 6. the skip affordance ----------------------------------------- */
+.fb-outro-skip{ display:block; margin:7px 0 0; font-size:10.5px; letter-spacing:.08em;
+  text-transform:uppercase; font-weight:700; color:inherit;
+  text-align:center; opacity:.55; }
+.fb-outro-counting .fb-outro-skip{ opacity:.8 }
+.fb-outro:not(.fb-outro-counting) .fb-outro-skip{ display:none }
+
+/* ---- 7. the win flourish. Pure CSS, no canvas, no library: eight sparks on
+   a one-shot animation, removed from the DOM when it ends. Decorative only —
+   aria-hidden, pointer-events:none, and it never covers the retry button. */
+.fb-outro-sparks{ position:absolute; inset:0; overflow:hidden; pointer-events:none;
+  border-radius:inherit; }
+.fb-outro-sparks i{ position:absolute; top:-8px; width:7px; height:11px; border-radius:2px;
+  opacity:0; animation:fb-outro-fall 1.5s linear both; }
+@keyframes fb-outro-fall{
+  0%{ opacity:0; transform:translateY(-10px) rotate(0) }
+  12%{ opacity:1 }
+  100%{ opacity:0; transform:translateY(420px) rotate(540deg) } }
+
+/* the card becomes the positioning context for the sparks and sits above the
+   overlay's own backdrop blur */
+.fb-outro-on .card{ position:relative; }
+
+/* ---- 8. laptop / tablet / phone ------------------------------------- */
+/* a landscape phone gives the card ~360px of height: drop the hero, tighten
+   every row, shrink the total. The ending still has all four beats. */
+@media (max-height:560px){
+  /* measured on a 740x360 landscape phone: the full card came to 378px against
+     360px of viewport, which clipped the verdict off the top. These reclaim
+     ~30px of chrome so the whole ending, including the replay button, fits
+     without scrolling. */
+  .fb-outro-on .card{ padding:14px 18px }
+  .fb-outro{ margin:5px 0 0 }
+  .fb-outro-kicker{ font-size:9.5px; margin:0 }
+  .fb-outro-hero{ display:none }
+  .fb-outro-tally li{ font-size:11.5px; padding:1px 0 }
+  .fb-outro-tally li b{ font-size:12.5px }
+  .fb-outro-total{ margin:5px 0 0; padding-top:5px }
+  .fb-outro-total b{ font-size:23px }
+  .fb-outro-rank{ margin:6px 0 0 }
+  .fb-outro-note{ font-size:10.5px }
+  .fb-outro-sparks{ display:none }
+}
+/* a very narrow phone: let a long row wrap instead of squeezing the number */
+@media (max-width:360px){
+  .fb-outro-tally li{ font-size:11.5px }
+  .fb-outro-total b{ font-size:26px }
+}
+
+/* ---- 9. INK IS INHERITED, NOT ASSUMED ------------------------------
+   Every colour above is `inherit` plus an opacity, and every rule and track is
+   a neutral grey with alpha. There is no dark-mode block, because there is
+   nothing left for one to correct.
+
+   This replaced a block that redeclared each node for `prefers-color-scheme:
+   dark`, which quietly assumed every run-over card is LIGHT in light mode. Two
+   are not: Bot Merge's is `--card`/`--ink`, and Bot Pong's is dark in both
+   schemes. A real match played to 11-1 on Bot Pong rendered the whole tally in
+   near-black on near-black — present in the DOM, read back correctly by the
+   gate, and invisible to the player. Inheriting is not a tidier way to write
+   the same thing; it is the only version that cannot be wrong about a surface
+   it has never seen. */
+
+/* ---- 10. reduced motion: no animation, and the ending still reads ----
+   Every animated property above has its resting state asserted here, because
+   `animation:none` on a `both`-filled keyframe leaves the element at its FROM
+   value — which for a tally row is opacity:0. Turning motion off must not turn
+   the ending screen off. */
+@media (prefers-reduced-motion:reduce){
+  .fb-outro-tally li{ opacity:1; transform:none; animation:none }
+  .fb-outro-hero{ animation:none; transform:none }
+  .fb-outro-bar span{ transition:none }
+  .fb-outro-sparks{ display:none }
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="testBanner hidden" id="testBanner">🧪 TEST MODE — local validator, fake $OIL. No real value moves.</div>
+
+    <div class="topbar">
+      <!--fb:preeyebrow--><a class="fb-mark" href="https://games.finnstergram.com" aria-label="FinnBots — more games"><svg class="fb-bot" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><path d="M14 5.4V3.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="14" cy="2" r="1.85" fill="var(--fb-amber)"/><rect x="1" y="11" width="2.6" height="6" rx="1.3" fill="currentColor"/><rect x="24.4" y="11" width="2.6" height="6" rx="1.3" fill="currentColor"/><rect x="3.6" y="5" width="20.8" height="18" rx="5.5" fill="currentColor"/><rect x="6.6" y="8.6" width="14.8" height="9.4" rx="2.6" fill="var(--fb-screen)"/><circle cx="10.7" cy="13.3" r="1.9" fill="var(--fb-amber)"/><circle cx="17.3" cy="13.3" r="1.9" fill="var(--fb-amber)"/></svg><span class="fb-word">FINN<i>BOTS</i></span></a><!--/fb-->
+      <span class="eyebrow">BOT MERGE</span>
+      <h1 id="title">Rush</h1>
+      <button class="icon" id="mute" type="button" aria-label="Sound">🔊</button>
+    </div>
+
+    <div class="modebar" id="modebar" role="tablist" aria-label="Game mode">
+      <button class="modepill active" id="modeFree" type="button" role="tab">Free play</button>
+      <button class="modepill" id="modeRanked" type="button" role="tab">Ranked · 25 OIL</button>
+    </div>
+
+    <section class="walletbar hidden" id="walletbar">
+      <div class="walletrow"><span class="lbl">Ranked — 25 OIL entry · fun leaderboard</span>
+        <button class="connect-btn" id="connectBtn" type="button">Connect</button></div>
+      <div class="wallet-status hidden" id="walletStatus"></div>
+    </section>
+
+    <div class="timerbar"><div class="timerfill" id="timerfill"></div></div>
+    <div class="stats">
+      <div class="stat"><div class="k">Score</div><div class="v" id="score">0</div></div>
+      <div class="stat"><div class="k">Time</div><div class="v" id="time">60s</div></div>
+      <div class="stat" id="stat-top"><div class="k">Top Bot</div><div class="v" id="topbot">—</div></div>
+    </div>
+    <div class="boardwrap">
+      <div class="board" id="board" role="grid" aria-label="Bot Merge board"></div>
+      <div class="combo" id="combo"></div>
+    </div>
+    <div class="hint" id="hint">Drag a Bot onto a <b>matching</b> Bot before the board floods!</div>
+
+    <div class="actions hidden" id="paidActions">
+      <button class="play" id="playBtn" type="button" disabled>Connect wallet to play</button>
+      <button class="post hidden" id="postBtn" type="button">Post score (1 OIL)</button>
+    </div>
+
+    <footer class="fb-foot">
+      <div class="tag">a FinnBots game</div>
+      <nav aria-label="More from FinnBots">
+        <a href="https://magiceden.io/marketplace/finnbot" target="_blank" rel="noopener">Buy a Bot</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://games.finnstergram.com/" target="_blank" rel="noopener">More games</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://merge.finnstergram.com/leaderboard.html">Rush leaderboard</a>
+      </nav>
+    </footer>
+
+    <div class="overlay" id="overOverlay">
+      <!-- the START card: shown at rest and between modes -->
+      <div id="startCard">
+        <h2 id="ov-title">Bot Merge</h2>
+        <p id="ov-text">Bots rain down and speed up. Drag matching Bots together to merge and score. Keep merging — it's game over when the board fills up!</p>
+        <button class="bigbtn" id="startbtn" type="button">Tap to start</button>
+      </div>
+      <!-- the RUN-OVER card, in the chassis shape the shared ending screen
+           binds to: #overTitle, a VISIBLE #oScore, a stat line, #retryBtn -->
+      <div class="card" id="overCard" hidden>
+        <h2 id="overTitle">BOARD FULL</h2>
+        <div class="big">SCORE <span id="oScore">0</span></div>
+        <p>Top Bot <b id="oTopBot">—</b> · Time <b id="oTime">0:00</b></p>
+        <div id="ov-saverow" style="display:none;">
+          <div class="initrow"><input id="initials" maxlength="3" placeholder="AAA" autocomplete="off" spellcheck="false" /></div>
+          <button class="savebtn" id="save" type="button">Save score</button>
+          <div class="lb"><h3>Best on this device</h3><ol id="lblist"></ol></div>
+        </div>
+        <button class="bigbtn" id="retryBtn" type="button">Play again</button>
+        <button class="ghostbtn" id="overPost" type="button" hidden>Post score (1 OIL)</button>
+        <button class="ghostbtn" id="overClose" type="button" hidden>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kid-safety gate: shown BEFORE any wallet code runs -->
+  <div class="sheet" id="confirmSheet"><div class="panel">
+    <h2>Ranked</h2>
+    <p>Ranked costs <b>25 OIL</b> to enter. The leaderboard is a <b>fun ranking</b> — not verified. One entry = one scored run. Bot holders get ×1.5.</p>
+    <button class="again" id="confirmEnter" type="button">Enter Ranked</button>
+    <button class="ghostbtn" id="confirmBack" type="button">Back to Free</button>
+  </div></div>
+
+  <div class="sheet" id="postedSheet"><div class="panel">
+    <h2>Score posted!</h2>
+    <p id="posted-text"></p>
+    <a class="ghostbtn" id="viewLb" href="https://merge.finnstergram.com/leaderboard.html" target="_blank" rel="noopener">View leaderboard →</a>
+    <button class="again" id="againBtn" type="button">Play again (25 OIL)</button>
+  </div></div>
+
+<!-- Shared wallet libs (loaded once; the wallet LOGIC stays dead until Paid is chosen) -->
+<script src="phantom-deeplink-libs.min.js?v=20260710b"></script>
+<script src="phantom-mobile.js?v=20260710b"></script>
+<script src="solana-web3.iife.min.js?v=20260710b"></script>
+<script>
+(function(){
+  'use strict';
+  /* ===== HEADLESS ==========================================================
+     The gates require() this engine with no DOM. Every sim-driving gate
+     (verify-inputs, playtest, skill-ladder) used to SKIP this game with
+     "document is not defined", so neither its controls nor its difficulty ramp
+     had ever been examined by anything. Detect first; every DOM handle then
+     goes through $id, which returns null headless instead of throwing. */
+  var HEADLESS = (typeof document === 'undefined');
+  function $id(id){ return HEADLESS ? null : document.getElementById(id); }
+  // ===== Shared constants (identical to the Free Rush loop) ==================
+  var ARWEAVE_BASE='https://arweave.net/_cPSCheRvzVBlZK7QwM-3nXtteMdBbUn-zJhbGRlMmo';
+  var LADDER=[106,355,710,940,1150,1620,860,2106,2480,357];
+  var CELLS=25, RAMP_MS=60000, COMBO_WINDOW=1400; // RAMP_MS: drop speed ramps to max over this long; the round is endless until the board fills
+  function botForValue(v){ var idx=Math.min(Math.round(Math.log2(v))-1, LADDER.length-1); return LADDER[Math.max(0,idx)]; }
+  function botImageHTML(n){ return '<img src="'+ARWEAVE_BASE+'/'+n+'.png" alt="Bot #'+n+'" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'#'+n+'\',className:\'img-fallback\'}));" />'; }
+  var mem={}; var LS={ get:function(k){ try{return localStorage.getItem(k);}catch(e){return (k in mem)?mem[k]:null;} }, set:function(k,v){ try{localStorage.setItem(k,v);}catch(e){mem[k]=v;} } };
+
+  // ===== Rush engine — drives BOTH Free and Paid rounds (wallet-free) ========
+  var mode='free'; // 'free' | 'paid' — set by setMode()
+  var boardEl=$id('board');
+  var scoreEl=$id('score'), timeEl=$id('time'), topbotEl=$id('topbot');
+  var fillEl=$id('timerfill'), comboEl=$id('combo');
+  var cells=[], lastVal=new Array(CELLS).fill(-1);
+  var running=false;                 /* does the BROWSER loop advance? not the sim's own phase */
+  var COLS=5, ROWS=5;                /* the board's CSS grid: repeat(5,1fr) x repeat(5,1fr) */
+
+  /* ---- THE RUN STATE ----------------------------------------------------
+     ONE plain object holds everything the sim reads and writes, the controls
+     included, so a gate can drive the SHIPPED engine instead of skipping it.
+     Plain by design: the skill gate forks a run by CLONING this.
+       `phase` is the chassis termination contract (play | dead). `running` is
+     a BROWSER concern — whether the frame loop is ticking — and stays out here.
+     Screen-only state (the painted cells, the drag ghost) stays out here too:
+     a clone of a run must not carry the screen's bookkeeping. */
+  var G=null;
+  function rnd(){ G.seed=(G.seed*1664525+1013904223)>>>0; return G.seed/4294967296; }
+
+  function newRun(seed){
+    G={ phase:'play', seed:((seed>>>0)||1),
+        board:new Array(CELLS).fill(0), score:0, combo:0, comboLeft:0,
+        elapsed:0, dropIn:0,
+        /* The KEYBOARD CURSOR. A drag is a PAIR of cell indices, and the
+           fixture every gate uses sets each numeric control to the same value
+           — so a `from`/`to` pair is always from==to, a no-op, and the game
+           would have exported a contract no harness could actually drive.
+           A cursor plus a grab is one scalar per axis, which every harness CAN
+           drive, and it is a real control scheme this game was missing. */
+        cursor:0, held:-1,
+        inUp:false, inDown:false, inLeft:false, inRight:false, inGrab:false,
+        _scan:0 };
+    G.dropIn=dropInterval();
+    placeDrop(); placeDrop(); placeDrop();
+    return G;
+  }
+
+  if(boardEl) for(var i=0;i<CELLS;i++){ var c=document.createElement('div'); c.className='cell'; c.dataset.idx=i; cells.push(c); boardEl.appendChild(c); }
+
+  function highest(){ var m=0; for(var i=0;i<CELLS;i++) if(G.board[i]>m) m=G.board[i]; return m; }
+  function filledCount(){ var n=0; for(var i=0;i<CELLS;i++) if(G.board[i]) n++; return n; }
+  function paint(i,pop){
+    if(HEADLESS||!cells[i]) return;
+    if(G.board[i]===lastVal[i] && !pop) return;
+    var c=cells[i], v=G.board[i];
+    if(v){ c.className='cell filled'; c.innerHTML=botImageHTML(botForValue(v))+'<span class="val">'+v+'</span>'; if(pop){ c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } }
+    else { c.className='cell'; c.innerHTML=''; }
+    lastVal[i]=v;
+  }
+  function paintAll(){ if(HEADLESS) return; for(var i=0;i<CELLS;i++) paint(i,false); paintCursor(); updateTop(); }
+  function updateTop(){ if(!topbotEl) return; var h=highest(); topbotEl.innerHTML=h?('#'+botForValue(h)+' <small>'+h+'</small>'):'—'; }
+  function updateScore(){ if(scoreEl) scoreEl.textContent=String(G.score); }
+  /* The cursor has to be VISIBLE or it is not a control, it is a secret. */
+  function paintCursor(){
+    if(HEADLESS||!cells.length) return;
+    for(var i=0;i<CELLS;i++){ cells[i].classList.remove('kcur'); cells[i].classList.remove('kheld'); }
+    if(!running) return;
+    if(cells[G.cursor]) cells[G.cursor].classList.add('kcur');
+    if(G.held>=0 && cells[G.held]) cells[G.held].classList.add('kheld');
+  }
+
+  function placeDrop(){
+    var e=[]; for(var i=0;i<CELLS;i++) if(!G.board[i]) e.push(i);
+    if(!e.length){ endRound('flooded'); return; }
+    var idx=e[Math.floor(rnd()*e.length)];
+    G.board[idx]=(rnd()<0.85)?2:4; paint(idx,true); updateTop();
+  }
+  /* The ramp, unchanged: gentle start, steep late. It now reads the run's OWN
+     elapsed time instead of the wall clock, which is what lets a gate measure
+     the difficulty curve — and stops a backgrounded tab flooding your board. */
+  function dropInterval(){
+    var f=Math.min(1, G.elapsed/RAMP_MS);
+    return Math.max(480, 2000 - 1520*Math.pow(f, 2.2));
+  }
+  var DIRS=[['inUp',0,-1],['inDown',0,1],['inLeft',-1,0],['inRight',1,0]];
+  /* ROUND-ROBIN over the directions, not a fixed priority: two held at once is
+     something only a harness (or two thumbs) does, and under a fixed order the
+     loser starves forever and reads as a control that does nothing. */
+  function consumeInput(){
+    var pick=-1;
+    for(var n=0;n<4;n++){ var i=(G._scan+n)%4; if(G[DIRS[i][0]]){ pick=i; break; } }
+    var grab=!!G.inGrab;
+    for(var k=0;k<4;k++) G[DIRS[k][0]]=false;
+    G.inGrab=false;
+    if(G.phase!=='play') return;
+    /* GRAB FIRST, THEN MOVE. The order is arbitrary to a player — the two
+       presses are frames apart — but not to a blind fixture: resolve the move
+       first and "hold a direction and grab together" becomes lift-at-a-cell,
+       step, put-down-on-the-same-cell, forever, and no gate can tell the grab
+       from a dead button. This way the same hold alternates pick up / carry /
+       drop, which is what the control actually does. */
+    if(grab){
+      if(G.held<0){ if(G.board[G.cursor]) G.held=G.cursor; }
+      else { applyMove(G.held, G.cursor); G.held=-1; }
+    }
+    if(pick>=0){
+      G._scan=(pick+1)%4;
+      /* The cursor WRAPS. Clamping parks it against a wall, which is both a
+         worse control on a 5x5 board (you cannot cross it in one press) and
+         the exact degenerate state that hides a held control from a fixture:
+         a cursor that cannot move is a grab that can only lift and drop the
+         same cell forever. */
+      var cx=G.cursor%COLS, cy=(G.cursor/COLS)|0;
+      cx=(cx+DIRS[pick][1]+COLS)%COLS;
+      cy=(cy+DIRS[pick][2]+ROWS)%ROWS;
+      G.cursor=cy*COLS+cx;
+    }
+    if(G.held>=0 && !G.board[G.held]) G.held=-1;   /* the lifted tile was merged away */
+  }
+  /* THE SIM CONTRACT. The browser loop and every gate go through this one
+     door, so what a gate drives is what a player plays. `s` may be a FORK of
+     the run (the skill gate clones it), so re-point at whatever we are handed.
+     The drop schedule and the combo window used to be a setTimeout and a
+     wall-clock deadline; they are a countdown ON THE RUN STATE now, because a
+     sim a gate cannot step is a sim no gate can measure. */
+  function stepGame(s, dtMs){
+    if(s && s!==G) G=s;
+    var ev={};
+    consumeInput();
+    if(G.phase!=='play') return ev;
+    var dt=Math.min(dtMs,250);
+    G.elapsed+=dt;
+    if(G.comboLeft>0){ G.comboLeft-=dt; if(G.comboLeft<=0){ G.comboLeft=0; G.combo=0; } }
+    G.dropIn-=dt;
+    var guard=0;
+    while(G.dropIn<=0 && G.phase==='play' && guard++<8){ placeDrop(); G.dropIn+=dropInterval(); }
+    return ev;
+  }
+  /* The one place a tile moves, for BOTH the drag and the keyboard cursor —
+     so the two routes can never disagree about what a merge is worth. */
+  function applyMove(src, dst){
+    if(G.phase!=='play') return false;
+    if(src<0||dst<0||src>=CELLS||dst>=CELLS||src===dst) return false;
+    var val=G.board[src]; if(!val) return false;
+    if(G.board[dst]===0){ G.board[dst]=val; G.board[src]=0; paint(src,false); paint(dst,false); return true; }
+    if(G.board[dst]===val){
+      G.board[dst]=val*2; G.board[src]=0; paint(src,false); paint(dst,true); updateTop();
+      G.combo=(G.comboLeft>0)?G.combo+1:1; G.comboLeft=COMBO_WINDOW;
+      var pts=(val*2)*G.combo; G.score+=pts; updateScore();
+      mergeFlourish(dst, pts);
+      return true;
+    }
+    return false;
+  }
+  function mergeFlourish(dst, pts){
+    if(HEADLESS) return;
+    var st=$id('stat-top'); if(st){ st.classList.remove('bump'); void st.offsetWidth; st.classList.add('bump'); }
+    if(cells[dst]) plusPop(cells[dst], pts);
+    if(G.combo>=2) showCombo(G.combo); sfxMerge(G.combo);
+  }
+  function tick(){
+    if(HEADLESS) return;
+    if(timeEl) timeEl.textContent=Math.floor(G.elapsed/1000)+'s'; // count up: survival time
+    // Timer bar becomes a board-fill gauge: fuller board = fuller (redder) bar
+    var fillPct=filledCount()/CELLS;
+    if(fillEl){ fillEl.style.width=(fillPct*100)+'%';
+      fillEl.style.background = fillPct<0.5?'var(--green)':(fillPct<0.75?'var(--amber)':'var(--red)'); }
+  }
+  /* The frame loop. Everything that used to live in two timers now rides one
+     clock, so a merge, a drop and the HUD can never be a frame out of step. */
+  var lastT=0;
+  function frame(now){
+    if(!HEADLESS) requestAnimationFrame(frame);
+    if(!lastT){ lastT=now; return; }
+    var dt=now-lastT; lastT=now; if(dt>250) dt=250;
+    if(!running || !G) return;
+    stepGame(G, dt);
+    tick(); paintCursor();
+  }
+
+  function startRound(){
+    ensureAudio();
+    newRun((Date.now()^0x9e3779b9)>>>0);
+    lastVal=new Array(CELLS).fill(-1); running=true;
+    boardEl.classList.remove('locked');
+    timeEl.textContent='0s'; fillEl.style.width='0%'; fillEl.style.background='var(--green)';
+    paintAll(); updateScore(); updateTop();
+    var _ov=document.getElementById('overOverlay');
+    _ov.classList.add('hidden'); _ov.classList.remove('show');
+    document.getElementById('overCard').hidden=true;
+    document.getElementById('startCard').hidden=false;
+  }
+  function stopRound(){ running=false; paintCursor(); }
+
+  /* ---- the run-over card (2026-10-02) ---------------------------------
+     ONE place that opens it, for both the free and the paid run end, so the
+     two can never drift. It toggles the two cards and adds `show` — the class
+     every other game on the roster uses and the class the shared stickiness
+     and ending layers watch. */
+  function mmss(ms){ var t=Math.floor(ms/1000); return Math.floor(t/60)+':'+String(t%60).padStart(2,'0'); }
+  function showOver(title, sc, top, ms, isBest){
+    var ov=document.getElementById('overOverlay');
+    document.getElementById('overTitle').textContent = title;
+    document.getElementById('oScore').textContent = sc;
+    document.getElementById('oTopBot').textContent = top?('#'+botForValue(top)):'—';
+    document.getElementById('oTime').textContent = mmss(ms);
+    document.getElementById('startCard').hidden = true;
+    document.getElementById('overCard').hidden = false;
+    ov.classList.remove('hidden');
+    ov.classList.add('show');      // the class the shared stickiness + outro layers watch
+  }
+  /* Put the overlay back to its resting state. Without this, once a player had
+     seen one run-over card, every later use of this overlay would open on it —
+     the one-way-door bug Mr Bot already paid for. */
+  function showStart(){
+    var ov=document.getElementById('overOverlay');
+    ov.classList.remove('show');   // intro, not a result: never bank a best here
+    document.getElementById('overCard').hidden = true;
+    document.getElementById('ov-saverow').style.display='none';
+    document.getElementById('startCard').hidden = false;
+    ov.classList.remove('hidden');
+  }
+
+  function endRound(reason){
+    if(G.phase!=='play') return;
+    G.phase='dead'; running=false;
+    if(HEADLESS) return;              /* a gate drives the sim, not the card */
+    sfxOver();
+    var elapsed=Math.round(G.elapsed); // survival time (no cap now that the round is endless)
+    /* EVERY run end goes to the controller, free or paid — the shape the other
+       seventeen paid games use. The controller decides: it returns true when it
+       has taken the run over (paid), false when the game should show its own
+       card (free). This game used to branch on `mode` out here and call the
+       controller only in paid mode, so a free run end was invisible — and a
+       free run end is the only kind `verify-scorepost` can drive, which is why
+       the gate that proves 25 OIL buys a recording leaderboard spot could never
+       see this game's score leave the engine.
+       The paid path below is unchanged: same object, same lock, same call. */
+    var res = { score:G.score, top:highest(), timeMs:elapsed, reason:reason };
+    if(Paid.onRunEnd(res)) return;
+    // --- Free: device-only leaderboard, unchanged ---
+    var h=highest();
+    var cur=parseInt(LS.get('botmerge_bestscore')||'0',10); var pb=G.score>cur; if(pb) LS.set('botmerge_bestscore',String(G.score));
+    /* The RUN-OVER card, not the start screen rewritten in place. #oScore is
+       static markup and carries the score ALONE: the shared stickiness and
+       ending layers bind once at page load and read that node, so an id
+       created later inside an innerHTML string does not exist when they look,
+       and "Top Bot #12" in the same element would be read as part of the
+       score. */
+    showOver('BOARD FULL', G.score, h, elapsed, pb);
+    document.getElementById('ov-saverow').style.display='block';
+    document.getElementById('save').textContent='Save score'; document.getElementById('save').disabled=false;
+    document.getElementById('initials').value='';
+    renderLB(null);
+  }
+
+  // ---- Drag to merge (shared) -----------------------------------------------
+  var drag=null;
+  function idxFromPoint(x,y){ var el=document.elementFromPoint(x,y); if(!el||!el.closest) return -1; var c=el.closest('.cell'); if(!c||!boardEl.contains(c)) return -1; return +c.dataset.idx; }
+  function moveGhost(e){ var s=drag.size; drag.ghost.style.left=(e.clientX-s/2)+'px'; drag.ghost.style.top=(e.clientY-s/2)+'px'; }
+  function clearTargets(){ for(var i=0;i<CELLS;i++) cells[i].classList.remove('target','badtarget'); }
+  function cleanup(){ if(drag){ if(drag.ghost&&drag.ghost.parentNode) drag.ghost.parentNode.removeChild(drag.ghost); clearTargets(); cells[drag.src].classList.remove('dragging'); } }
+
+  if(boardEl){
+  boardEl.addEventListener('pointerdown', function(e){
+    if(!running) return;
+    var c=e.target.closest?e.target.closest('.cell'):null; if(!c) return;
+    var idx=+c.dataset.idx; if(!G.board[idx]) return;
+    e.preventDefault(); if(drag) cleanup();
+    var rect=cells[idx].getBoundingClientRect();
+    var g=document.createElement('div'); g.className='ghost'; g.style.width=rect.width+'px'; g.style.height=rect.width+'px';
+    g.innerHTML=botImageHTML(botForValue(G.board[idx]))+'<span class="val">'+G.board[idx]+'</span>'; document.body.appendChild(g);
+    drag={ src:idx, val:G.board[idx], size:rect.width, ghost:g }; moveGhost(e);
+    cells[idx].classList.add('dragging');
+    try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  boardEl.addEventListener('pointermove', function(e){
+    if(!drag) return; e.preventDefault(); moveGhost(e); clearTargets();
+    var t=idxFromPoint(e.clientX,e.clientY);
+    if(t>=0 && t!==drag.src) cells[t].classList.add((G.board[t]===0||G.board[t]===drag.val)?'target':'badtarget');
+  });
+  boardEl.addEventListener('pointerup', function(e){
+    if(!drag) return; e.preventDefault();
+    var t=idxFromPoint(e.clientX,e.clientY), src=drag.src; cleanup(); drag=null;
+    /* ONE move function for the drag and the cursor alike. This used to be a
+       second copy of the merge rules living in a pointer handler — outside the
+       sim, and so outside everything that could check it. */
+    applyMove(src, t);
+    G.cursor=(t>=0?t:src); G.held=-1; paintCursor();
+  });
+  boardEl.addEventListener('pointercancel', function(){ if(drag){ cleanup(); drag=null; } });
+  }
+
+  function plusPop(cell, pts){ var r=cell.getBoundingClientRect(); var p=document.createElement('div'); p.className='pluspop'; p.textContent='+'+pts; p.style.left=(r.left+r.width/2-14)+'px'; p.style.top=(r.top+r.height/2-10)+'px'; p.style.fontSize='clamp(16px,3vw,24px)'; document.body.appendChild(p); setTimeout(function(){ if(p.parentNode) p.parentNode.removeChild(p); },700); }
+  function showCombo(c){ comboEl.textContent='COMBO ×'+c; comboEl.classList.remove('show'); void comboEl.offsetWidth; comboEl.classList.add('show'); comboEl.style.opacity='1'; clearTimeout(showCombo._t); showCombo._t=setTimeout(function(){ comboEl.style.opacity='0'; },700); }
+
+  // ---- Sound (WebAudio, no assets) ------------------------------------------
+  var actx=null, muted=false;
+  function ensureAudio(){ try{ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)(); if(actx.state==='suspended') actx.resume(); }catch(e){} }
+  function beep(freq,dur,type){ if(muted||!actx) return; try{ var o=actx.createOscillator(),g=actx.createGain(); o.type=type||'sine'; o.frequency.value=freq; o.connect(g); g.connect(actx.destination); var t=actx.currentTime; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.22,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur+0.02); }catch(e){} }
+  function sfxMerge(c){ beep(300+Math.min(c,9)*70,0.12,'triangle'); }
+  function sfxOver(){ beep(320,0.16,'sawtooth'); setTimeout(function(){beep(200,0.24,'sawtooth');},150); }
+  if(!HEADLESS) document.getElementById('mute').addEventListener('click', function(){ muted=!muted; this.textContent=muted?'🔇':'🔊'; });
+
+  // ---- Free device leaderboard ----------------------------------------------
+  function loadLB(){ try{ return JSON.parse(LS.get('botmerge_lb')||'[]'); }catch(e){ return []; } }
+  function saveLB(a){ LS.set('botmerge_lb', JSON.stringify(a.slice(0,10))); }
+  function renderLB(hi){ var arr=loadLB(), ol=document.getElementById('lblist'); ol.innerHTML=''; if(!arr.length){ ol.innerHTML='<li style="justify-content:center;">No scores yet!</li>'; return; }
+    arr.slice(0,5).forEach(function(e,i){ var li=document.createElement('li'); if(i===hi) li.className='me';
+      li.innerHTML='<span class="rank">'+(i+1)+'</span><span class="who">'+e.who+'</span><span class="sc">'+e.score+' · #'+botForValue(e.tile)+'</span>'; ol.appendChild(li); }); }
+  function saveScore(){ var who=(document.getElementById('initials').value||'AAA').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3)||'AAA';
+    var arr=loadLB(); var score=G.score; arr.push({ who:who, score:score, tile:highest(), ts:Date.now() });
+    arr.sort(function(a,b){ return (b.score-a.score)||(b.tile-a.tile)||(a.ts-b.ts); });
+    var idx=arr.findIndex(function(e){ return e.who===who&&e.score===score&&e.tile===highest(); });
+    saveLB(arr); renderLB(idx<5?idx:null); document.getElementById('save').textContent='Saved ✓'; document.getElementById('save').disabled=true; }
+
+  /* KEYBOARD: move the cursor, space/enter to lift and drop. The board was
+     drag-only — unplayable with a trackpad that has no comfortable drag, and
+     undrivable by any gate. Both routes end in applyMove(). */
+  if(!HEADLESS) window.addEventListener('keydown', function(e){
+    if(!G) return;
+    var k=e.key;
+    if(k==='ArrowUp'||k==='w'||k==='W'){ e.preventDefault(); G.inUp=true; }
+    else if(k==='ArrowDown'||k==='s'||k==='S'){ e.preventDefault(); G.inDown=true; }
+    else if(k==='ArrowLeft'||k==='a'||k==='A'){ e.preventDefault(); G.inLeft=true; }
+    else if(k==='ArrowRight'||k==='d'||k==='D'){ e.preventDefault(); G.inRight=true; }
+    else if(k===' '||k==='Enter'){ e.preventDefault();
+      if(!running){ startRound(); return; }
+      G.inGrab=true; }
+  });
+  if(!HEADLESS){
+  document.getElementById('startbtn').addEventListener('click', startRound);
+  /* #retryBtn is the id the shared stickiness layer clicks for one-key replay,
+     so it must start a round exactly as the start button does. */
+  document.getElementById('retryBtn').addEventListener('click', startRound);
+  /* Paid: forward to the existing controls. No wallet code path is touched. */
+  document.getElementById('overPost').addEventListener('click', function(){
+    document.getElementById('postBtn').click();
+    document.getElementById('overOverlay').classList.remove('show');
+    document.getElementById('overOverlay').classList.add('hidden');
+  });
+  document.getElementById('overClose').addEventListener('click', function(){
+    document.getElementById('overOverlay').classList.remove('show');
+    document.getElementById('overOverlay').classList.add('hidden');
+  });
+  document.getElementById('save').addEventListener('click', function(){ if(!this.disabled) saveScore(); });
+  document.getElementById('initials').addEventListener('keydown', function(e){ if(e.key==='Enter'){ var b=document.getElementById('save'); if(!b.disabled) saveScore(); } });
+  }
+
+  // ===========================================================================
+  // ===== Paid / wallet layer — DEAD until Paid is chosen (Paid.init) =========
+  // ===== Rush is real-time and UNREPLAYABLE. The RUSH leaderboard is a fun ===
+  // ===== ranking + an OIL sink. It is NOT verified / provably fair. ==========
+  // ===========================================================================
+  var Paid=(function(){
+    var TEST_MODE = false;    // <-- flip to false ONLY with Founder confirm in this run's output
+    var CFG = TEST_MODE ? {
+      RPC: 'http://127.0.0.1:8899',
+      TOKEN_PROGRAM: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+      MEMO_PROGRAM: 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+      OIL_MINT: '9B5ZQifZQc3ykhnZhA9m8DFoNY5uaTwqHGNZMah6eK8Y',
+      TREASURY: '8tzZzNiGkE2kYXhUSauNEUyVHiaWBt5pBagg7CHKPNBM',
+      TREASURY_TOKEN_ACCOUNT: '3s1SQ7JZmti4PfhVsb7LCTn9q5ZhRBMaH6v2vsrVZeg6',
+      ENTRY_FEE: 25, POST_FEE: 1, DECIMALS: 2
+    } : {
+      RPC: 'https://finnbots-rpc.mart-kin1000.workers.dev',
+      TOKEN_PROGRAM: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+      MEMO_PROGRAM: 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+      OIL_MINT: 'HrcfXJcFdMoLfbkN5qCTSFrLsAgJNHitmwKc5AyS7xzf',
+      TREASURY: '75WPN3kwYUT5kdPU7V3Fp3LhnxmPC38bsgBCasRQdXMR',
+      TREASURY_TOKEN_ACCOUNT: '2ZBNMLZFfHCuZm9Lfc3b7ut296tRwGtapuXad7zSm1ED',
+      ENTRY_FEE: 25, POST_FEE: 1, DECIMALS: 2
+    };
+    var MEMO_TAG = 'RUSH';
+    var wallet = { pubkey:null, oil:0 };
+    var inited=false, busy=false, entrySig=null, pendingResult=null;
+    var connectBtn, walletStatus, playBtn, postBtn;
+
+    function $(id){ return document.getElementById(id); }
+    function getProvider(){ if(window.phantom&&window.phantom.solana&&window.phantom.solana.isPhantom) return window.phantom.solana; if(window.solana&&window.solana.isPhantom) return window.solana; return null; }
+    function shortAddr(a){ return a.slice(0,4)+'\u2026'+a.slice(-4); }
+    function setStatus(html,cls){ walletStatus.classList.remove('hidden'); walletStatus.className='wallet-status'+(cls?' '+cls:''); walletStatus.innerHTML=html; }
+    function canPlay(){ return !!wallet.pubkey && wallet.oil>=CFG.ENTRY_FEE; }
+    function delay(ms){ return new Promise(function(res){ setTimeout(res,ms); }); }
+
+    // ---- balance ------------------------------------------------------------
+    async function fetchOilBalance(owner){
+      try{ var body=JSON.stringify({ jsonrpc:'2.0', id:'oilbal', method:'getTokenAccountsByOwner', params:[ owner, { mint:CFG.OIL_MINT }, { encoding:'jsonParsed' } ] });
+        var r=await fetch(CFG.RPC,{ method:'POST', headers:{'Content-Type':'application/json'}, body:body }); if(!r.ok) return 0;
+        var j=await r.json(); var accts=j&&j.result&&j.result.value; if(!accts||!accts.length) return 0;
+        var base=0; accts.forEach(function(acc){ try{ base+=Number(acc.account.data.parsed.info.tokenAmount.amount); }catch(e){} });
+        return base/Math.pow(10,CFG.DECIMALS);
+      }catch(e){ return 0; }
+    }
+    async function checkBalance(owner){
+      wallet.oil=await fetchOilBalance(owner);
+      var pfx=TEST_MODE?'\ud83e\uddea TEST MODE \u2014 ':'';
+      if(wallet.oil>=CFG.ENTRY_FEE){ setStatus('Connected as <span class="addr">'+shortAddr(owner)+'</span><br/>'+pfx+'You hold <b>'+wallet.oil.toFixed(2)+'</b> $OIL \u2014 cleared to play.', 'ok');
+        if(!entrySig){ playBtn.disabled=false; playBtn.textContent='Play ('+CFG.ENTRY_FEE+' $OIL)'; } }
+      else { setStatus('Connected as <span class="addr">'+shortAddr(owner)+'</span><br/>'+pfx+'This wallet holds <b>'+wallet.oil.toFixed(2)+'</b> $OIL \u2014 need at least '+CFG.ENTRY_FEE+' to play.', 'warn');
+        playBtn.disabled=true; playBtn.textContent='Need '+CFG.ENTRY_FEE+' $OIL'; }
+    }
+
+    // ---- payment (one signed SPL transfer + memo) ---------------------------
+    var PENDING_KEY='rush_pending_action';
+    function savePending(a){ try{ localStorage.setItem(PENDING_KEY, JSON.stringify(a)); }catch(e){} }
+    function loadPending(){ try{ var v=localStorage.getItem(PENDING_KEY); return v?JSON.parse(v):null; }catch(e){ return null; } }
+    function clearPending(){ try{ localStorage.removeItem(PENDING_KEY); }catch(e){} }
+    function PayError(msg){ this.userMessage=msg; }
+    function u64LE(amount){ var out=new Uint8Array(8); var big=BigInt(Math.round(amount)); for(var i=0;i<8;i++){ out[i]=Number(big&0xffn); big>>=8n; } return out; }
+    function buildTransferIx(src,dst,owner,amt){ var data=new Uint8Array(9); data[0]=3; data.set(u64LE(amt),1);
+      return new solanaWeb3.TransactionInstruction({ programId:new solanaWeb3.PublicKey(CFG.TOKEN_PROGRAM),
+        keys:[{pubkey:src,isSigner:false,isWritable:true},{pubkey:dst,isSigner:false,isWritable:true},{pubkey:owner,isSigner:true,isWritable:false}], data:data }); }
+    function buildMemoIx(owner,text){ return new solanaWeb3.TransactionInstruction({ programId:new solanaWeb3.PublicKey(CFG.MEMO_PROGRAM), keys:[{pubkey:owner,isSigner:true,isWritable:false}], data:new TextEncoder().encode(text) }); }
+    async function confirmSignature(connection,signature,timeoutMs){ var start=Date.now();
+      while(Date.now()-start<timeoutMs){ var res=await connection.getSignatureStatuses([signature]); var st=res&&res.value&&res.value[0];
+        if(st){ if(st.err) throw new PayError('The transaction failed on-chain \u2014 no charge was made. Please try again.'); if(st.confirmationStatus==='confirmed'||st.confirmationStatus==='finalized') return true; } await delay(1500); } return false; }
+
+    async function sendPayment(amountOil, memoText, action){
+      var provider=getProvider();
+      var useMobile=!provider && window.PhantomMobile && PhantomMobile.isMobile() && PhantomMobile.hasSession();
+      if(!provider && !useMobile) throw new PayError('Phantom isn\u2019t reachable here \u2014 open this page in your browser, or tap Connect again on mobile.');
+      var ownerPk=new solanaWeb3.PublicKey(wallet.pubkey);
+      var connection=new solanaWeb3.Connection(CFG.RPC,'confirmed');
+      var tokAccts=await connection.getTokenAccountsByOwner(ownerPk,{ mint:new solanaWeb3.PublicKey(CFG.OIL_MINT) });
+      if(!tokAccts.value.length) throw new PayError('No $OIL account found in this wallet.');
+      var sourcePubkey=tokAccts.value[0].pubkey;
+      var balInfo=await connection.getTokenAccountBalance(sourcePubkey);
+      var needBase=Math.round(amountOil*Math.pow(10,CFG.DECIMALS));
+      if(Number(balInfo.value.amount)<needBase) throw new PayError('Not enough liquid $OIL \u2014 need '+amountOil+'.');
+      var destPubkey=new solanaWeb3.PublicKey(CFG.TREASURY_TOKEN_ACCOUNT);
+      var tx=new solanaWeb3.Transaction();
+      tx.add(buildTransferIx(sourcePubkey,destPubkey,ownerPk,needBase), buildMemoIx(ownerPk,memoText));
+      tx.feePayer=ownerPk; var latest=await connection.getLatestBlockhash(); tx.recentBlockhash=latest.blockhash;
+      if(useMobile){
+        var pend={ action:action, owner:wallet.pubkey, marker:'rush_sign' };
+        if(action==='score' && pendingResult){ pend.entrySig=entrySig; pend.score=pendingResult.score; pend.top=pendingResult.top; pend.timeMs=pendingResult.timeMs; }
+        savePending(pend); setStatus('Opening Phantom to approve\u2026');
+        var unsigned=tx.serialize({ requireAllSignatures:false, verifySignatures:false });
+        PhantomMobile.signTransaction(unsigned, window.location.origin+window.location.pathname, 'rush_sign'); return null;
+      }
+      var signed=await provider.signTransaction(tx); setStatus('Sending payment\u2026');
+      var rawSig=await connection.sendRawTransaction(signed.serialize(),{ skipPreflight:false }); setStatus('Payment sent \u2014 waiting for confirmation\u2026');
+      var ok=await confirmSignature(connection,rawSig,30000); if(!ok) throw new PayError('Confirmation is taking longer than expected. Signature: '+rawSig+'. Do not pay again \u2014 check it first.');
+      return rawSig; // base58 on-chain signature
+    }
+
+    // ---- score memo (RUSH — no seed, no move-log, no replay) -----------------
+    function buildScoreMemo(res){ return MEMO_TAG+'|score|sig='+String(entrySig).slice(0,32)+'|score='+res.score+'|top='+res.top+'|time='+Math.round(res.timeMs); }
+
+    // ---- flow glue ----------------------------------------------------------
+    function onEntryConfirmed(sig){ entrySig=sig; busy=false; lockModeToggle(true); playBtn.classList.add('hidden'); startRound(); }
+    function handleRoundEnd(res){ pendingResult=res; busy=false;
+      playBtn.classList.add('hidden');
+      postBtn.classList.remove('hidden'); postBtn.disabled=false; postBtn.textContent='Post score (1 OIL)';
+      setStatus('Run over \u2014 score <b>'+res.score+'</b>, Top Bot <b>#'+botForValue(res.top)+'</b>. Post it to the leaderboard (1 OIL).', 'ok');
+      /* A PAYING player used to get this status line and nothing else: no card,
+         no tally, no ranking — the thinnest ending on the roster, on the one
+         mode that costs 25 OIL. Show the same run-over card the free mode gets,
+         with the post action ON it, since the overlay covers the action row.
+         It FORWARDS a click to the existing #postBtn and touches no wallet
+         code path. */
+      showOver('RUN OVER', res.score, res.top, res.timeMs, false);
+      var op=document.getElementById('overPost'), oc=document.getElementById('overClose');
+      op.hidden=false; oc.hidden=false;
+      document.getElementById('retryBtn').hidden=true;
+    }
+    function showPosted(top){ pendingResult=null; entrySig=null; busy=false;
+      boardEl.classList.add('locked'); postBtn.classList.add('hidden'); lockModeToggle(false);
+      $('posted-text').innerHTML='Top Bot <b>#'+botForValue(top)+'</b> (tile '+top+'). It\u2019ll appear on the Ranked leaderboard once recorded on-chain \u2014 a fun ranking, not verified.';
+      $('postedSheet').classList.add('show');
+    }
+    function resetToPlay(){ entrySig=null; pendingResult=null; busy=false;
+      /* the run-over card's paid buttons are per-run state: put them back, or
+         a later free run inherits "Post score" and loses its replay button */
+      document.getElementById('overPost').hidden=true;
+      document.getElementById('overClose').hidden=true;
+      document.getElementById('retryBtn').hidden=false;
+      postBtn.classList.add('hidden'); postBtn.disabled=false; postBtn.textContent='Post score (1 OIL)';
+      playBtn.classList.remove('hidden');
+      boardEl.classList.add('locked'); board=new Array(CELLS).fill(0); lastVal=new Array(CELLS).fill(-1); paintAll();
+      lockModeToggle(false);
+      if(wallet.pubkey) checkBalance(wallet.pubkey); else { playBtn.disabled=true; playBtn.textContent='Connect wallet to play'; }
+    }
+
+    // ---- connect (desktop + mobile) -----------------------------------------
+    async function onConnect(){
+      var provider=getProvider();
+      if(!provider){
+        if(window.PhantomMobile && PhantomMobile.isMobile()){
+          var inBrowse=new URLSearchParams(window.location.search).get('src')==='browse';
+          if(!inBrowse){ connectBtn.disabled=true; connectBtn.textContent='Opening in Phantom\u2026'; setStatus('Opening this game inside Phantom\u2019s browser.');
+            var target=window.location.origin+window.location.pathname+'?src=browse';
+            window.location.href='https://phantom.app/ul/browse/'+encodeURIComponent(target)+'?ref='+encodeURIComponent(window.location.origin); return; }
+          connectBtn.disabled=true; connectBtn.textContent='Opening Phantom\u2026'; setStatus('Opening Phantom \u2014 approve, then you\u2019ll come back here.');
+          PhantomMobile.connect(window.location.origin+window.location.pathname); return;
+        }
+        setStatus('Phantom isn\u2019t reachable here. Open this page in a browser with the <a href="https://phantom.app" target="_blank" rel="noopener">Phantom</a> extension.', 'warn'); return;
+      }
+      connectBtn.disabled=true; connectBtn.textContent='Connecting\u2026';
+      try{ var resp=await provider.connect(); wallet.pubkey=resp.publicKey.toString(); connectBtn.textContent='Connected';
+        setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey);
+      }catch(e){ connectBtn.disabled=false; connectBtn.textContent='Connect'; setStatus('Connection cancelled. Tap Connect to try again.', 'warn'); }
+    }
+
+    // ---- play (25 OIL entry) ------------------------------------------------
+    async function onPlay(){
+      if(busy || entrySig) return;
+      if(!canPlay()){ setStatus('Connect a wallet holding at least '+CFG.ENTRY_FEE+' $OIL to play.', 'warn'); return; }
+      busy=true; playBtn.disabled=true; playBtn.textContent='Sending entry\u2026';
+      try{ var sig=await sendPayment(CFG.ENTRY_FEE, MEMO_TAG+'|entry', 'entry'); if(sig===null) return; onEntryConfirmed(sig); }
+      catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey||'')+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Something went wrong sending the entry. No confirmed charge means nothing was taken.'), 'warn');
+        playBtn.disabled=false; playBtn.textContent='Play ('+CFG.ENTRY_FEE+' $OIL)'; busy=false; }
+    }
+
+    // ---- post score (1 OIL) -------------------------------------------------
+    async function onPost(){
+      if(busy || !pendingResult) return;
+      busy=true; postBtn.disabled=true; postBtn.textContent='Posting\u2026';
+      var memo=buildScoreMemo(pendingResult);
+      try{ var sig=await sendPayment(CFG.POST_FEE, memo, 'score'); if(sig===null) return; showPosted(pendingResult.top); }
+      catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey||'')+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Your score post didn\u2019t confirm. Nothing recorded yet \u2014 tap to retry.'), 'warn');
+        postBtn.disabled=false; postBtn.textContent='Retry post'; busy=false; }
+    }
+
+    function onAgain(){ $('postedSheet').classList.remove('show'); resetToPlay(); }
+
+    // ---- mobile redirect resume (mirrors Spot / BM48) -----------------------
+    async function resume(){
+      var actionParam=new URLSearchParams(window.location.search).get('phantom_action');
+      if(!actionParam){
+        if(!wallet.pubkey && window.PhantomMobile && PhantomMobile.hasSession()){ wallet.pubkey=PhantomMobile.getSessionPublicKey();
+          connectBtn.textContent='Connected'; connectBtn.disabled=true; setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey); }
+        return;
+      }
+      connectBtn.disabled=true; connectBtn.textContent='Finishing\u2026'; setStatus('Almost there \u2014 finishing up with Phantom\u2026');
+      var pending=loadPending(); var marker=pending?pending.marker:'rush_sign';
+      var result=window.PhantomMobile?PhantomMobile.consumePendingRedirect(marker):null;
+      if(result&&result.type==='connect'){ wallet.pubkey=result.publicKey; connectBtn.textContent='Connected';
+        setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey)+'</span><br/>Checking your $OIL balance\u2026'); checkBalance(wallet.pubkey); return; }
+      if(result&&result.type==='signTransaction'&&pending){ connectBtn.textContent='Connected'; connectBtn.disabled=true; if(pending.owner) wallet.pubkey=pending.owner; clearPending();
+        try{ var connection=new solanaWeb3.Connection(CFG.RPC,'confirmed'); var rawSig=await connection.sendRawTransaction(result.txBytes,{ skipPreflight:false });
+          setStatus('Payment sent \u2014 waiting for confirmation\u2026'); var ok=await confirmSignature(connection,rawSig,30000);
+          if(!ok) throw new PayError('Confirmation slow. Signature: '+rawSig+'. Do not pay again \u2014 check it first.');
+          if(pending.action==='entry'){ onEntryConfirmed(rawSig); }
+          else if(pending.action==='score'){ pendingResult={ score:pending.score, top:pending.top, timeMs:pending.timeMs }; showPosted(pending.top); }
+          if(wallet.pubkey) checkBalance(wallet.pubkey);
+        }catch(e){ setStatus('Connected as <span class="addr">'+shortAddr(wallet.pubkey||'')+'</span><br/>'+((e instanceof PayError)?e.userMessage:'Something went wrong after returning from Phantom. Check your wallet activity before retrying.'), 'warn'); }
+        return;
+      }
+      connectBtn.disabled=false; connectBtn.textContent='Connect';
+      setStatus((result&&result.type==='error')?result.message:'The connection didn\u2019t complete \u2014 tap Connect to try again.', 'warn');
+    }
+
+    function init(){
+      if(inited) return; inited=true;
+      connectBtn=$('connectBtn'); walletStatus=$('walletStatus'); playBtn=$('playBtn'); postBtn=$('postBtn');
+      if(TEST_MODE){ $('testBanner').classList.remove('hidden'); }
+      playBtn.disabled=true; playBtn.textContent='Connect wallet to play';
+      connectBtn.addEventListener('click', onConnect);
+      playBtn.addEventListener('click', onPlay);
+      postBtn.addEventListener('click', onPost);
+      $('againBtn').addEventListener('click', onAgain);
+    }
+
+    /* The one door the engine knocks on at every run end. TRUE means "I have
+       taken it from here" (paid), FALSE means "show your own card" (free) —
+       and the paid branch is exactly what endRound used to do inline. */
+    function onRunEnd(res){
+      if(mode!=='paid') return false;
+      boardEl.classList.add('locked');
+      handleRoundEnd(res);
+      return true;
+    }
+    return { init:init, resume:resume, onRunEnd:onRunEnd, handleRoundEnd:handleRoundEnd, checkBalance:function(){ if(wallet.pubkey) checkBalance(wallet.pubkey); } };
+  })();
+  /* The paid controller, under the name every other paid game on the roster
+     already uses (BotJumperPaid, BotFordPaid, MrBotPaid, ...). Bot Merge was
+     the ONLY one keeping it as a closure variable, and the cost of that was
+     that `verify-scorepost` had nothing to hook: the gate that proves 25 OIL
+     buys a leaderboard spot which actually RECORDS could only ever check this
+     game's memo by construction, never by driving a real run to its end.
+     It does put the controller on the console of a paid build. The RUSH board
+     is a fun ranking and an OIL sink and says so in this file — it is not
+     verified or provably fair — and anyone with devtools could already reach
+     these functions. Founder decision, 2026-10-08. */
+  if(!HEADLESS) window.BotMergePaid = Paid;
+
+  // ===== Mode switching (kid-safety: Paid is a deliberate opt-in) =============
+  var modeFreeBtn=$id('modeFree'), modeRankedBtn=$id('modeRanked');
+  var titleEl=$id('title'), hintEl=$id('hint');
+  var overlayEl=$id('overOverlay'), confirmSheet=$id('confirmSheet');
+
+  function lockModeToggle(lock){ modeFreeBtn.disabled=!!lock; modeRankedBtn.disabled=!!lock; }
+
+  function setMode(m){
+    mode=m;
+    if(m==='free'){
+      modeFreeBtn.classList.add('active'); modeRankedBtn.classList.remove('active');
+      titleEl.textContent='Rush';
+      document.getElementById('walletbar').classList.add('hidden');
+      document.getElementById('paidActions').classList.add('hidden');
+      hintEl.innerHTML='Drag \u2014 or use the <b>arrow keys + space</b> \u2014 to put a Bot onto a <b>matching</b> Bot before the board floods!';
+      stopRound(); newRun((Date.now()^0x5bf03635)>>>0); lastVal=new Array(CELLS).fill(-1); paintAll(); boardEl.classList.remove('locked');
+      document.getElementById('ov-title').textContent='Bot Merge';
+      document.getElementById('ov-text').textContent='Bots rain down and speed up. Put matching Bots together to merge and score \u2014 drag them, or move with the arrow keys and press space to pick up and drop. Keep merging \u2014 it\'s game over when the board fills up!';
+      document.getElementById('startbtn').textContent='Tap to start';
+      showStart();
+      lockModeToggle(false);
+    } else {
+      modeRankedBtn.classList.add('active'); modeFreeBtn.classList.remove('active');
+      titleEl.textContent='Ranked';
+      document.getElementById('walletbar').classList.remove('hidden');
+      document.getElementById('paidActions').classList.remove('hidden');
+      document.getElementById('postBtn').classList.add('hidden');
+      document.getElementById('playBtn').classList.remove('hidden');
+      hintEl.innerHTML='25 OIL entry \u00b7 one scored run \u00b7 a <b>fun</b> leaderboard (not verified). Bot holders \u00d71.5.';
+      stopRound(); newRun((Date.now()^0x5bf03635)>>>0); lastVal=new Array(CELLS).fill(-1); paintAll(); boardEl.classList.add('locked');
+      overlayEl.classList.add('hidden'); overlayEl.classList.remove('show');
+    }
+  }
+
+  if(!HEADLESS){
+  modeFreeBtn.addEventListener('click', function(){ if(mode==='free') return; setMode('free'); });
+  modeRankedBtn.addEventListener('click', function(){ if(mode==='paid') return; confirmSheet.classList.add('show'); });
+  document.getElementById('confirmBack').addEventListener('click', function(){ confirmSheet.classList.remove('show'); });
+  document.getElementById('confirmEnter').addEventListener('click', function(){ confirmSheet.classList.remove('show'); setMode('paid'); Paid.init(); });
+
+  // ===== On load: Free by default. Wallet layer is only touched when returning
+  // ===== from a Phantom redirect or already inside Phantom's browser (both of
+  // ===== which can ONLY occur after the user opted into Paid). ================
+  (function boot(){
+    var params=new URLSearchParams(window.location.search);
+    var actionParam=params.get('phantom_action');
+    var browseParam=params.get('src')==='browse';
+    if(actionParam || browseParam){ setMode('paid'); Paid.init(); Paid.resume(); }
+    else { setMode('free'); }
+    paintAll();
+    requestAnimationFrame(frame);     /* ONE clock for drops, combo and the HUD */
+  })();
+  }  /* end DOM half */
+
+  /* The contract the gates drive. newRun() hands back a run already PLAYING:
+     headless there is no start button to press, and a run that never starts is
+     a termination sim that never ends. */
+  if(HEADLESS && typeof module!=='undefined')
+    module.exports={ CFG:{ CELLS:CELLS, COLS:COLS, ROWS:ROWS, RAMP_MS:RAMP_MS, COMBO_WINDOW:COMBO_WINDOW },
+                     newRun:newRun, stepGame:stepGame };
+})();
+</script>
+<script>
+/* Bot Merge kept its own personal best (botmerge_bestscore) long before the
+   shared stickiness layer existed. Seed the layer's key from it ONCE so the
+   topbar chip and the game's own "New personal best!" agree instead of showing
+   two different numbers to the same player. Both update from the same score
+   afterwards, so they stay in step. */
+try{
+  var _fbK = 'fb:' + (location.hostname.split('.')[0] || 'game') + ':best';
+  if(localStorage.getItem(_fbK) == null){
+    var _old = parseInt(localStorage.getItem('botmerge_bestscore') || '0', 10);
+    if(_old > 0) localStorage.setItem(_fbK, JSON.stringify(_old));
+  }
+}catch(e){}
+</script>
+<script id="fb-sticky">
+/* ==========================================================================
+   FinnBots STICKINESS LAYER — the reason a player takes one more run.
+   Founder rule, 2026-09-25: "provide a UI/UX that will support stickiness
+   with players."
+
+   SOURCE OF TRUTH. Injected by apply-device.js as <script id="fb-sticky">
+   just before </body>. It is deliberately tiny and entirely passive:
+
+     - it NEVER touches the engine, the wallet layer, the network or a wallet
+     - it reads the score the game ALREADY prints into #oScore
+     - it stores one number per game in localStorage, and nothing else
+
+   What it adds, and why each one earns its place:
+     1. A personal best you can always see.  A score with nothing to beat is a
+        number; a score next to your best is a challenge.
+     2. A run-over line that says exactly how close you came ("1,240 short" /
+        "NEW BEST +900").  The gap is what makes the next run feel winnable.
+     3. A session run counter, so a streak is visible while it is happening.
+     4. Enter / Space / Return restarts from the run-over card.  The single
+        biggest drop-off in an arcade loop is the pause between runs — the
+        fastest possible replay is the strongest retention feature there is.
+   ========================================================================== */
+(function(){
+  try{
+    var NS = 'fb:' + (location.hostname.split('.')[0] || 'game') + ':';
+    var $  = function(id){ return document.getElementById(id); };
+    var read = function(k,d){ try{ var v=localStorage.getItem(NS+k); return v==null?d:(JSON.parse(v)); }catch(e){ return d; } };
+    var save = function(k,v){ try{ localStorage.setItem(NS+k, JSON.stringify(v)); }catch(e){} };
+    var fmt  = function(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    var num  = function(t){ var n=parseInt(String(t||'').replace(/[^0-9]/g,''),10); return isFinite(n)?n:0; };
+
+    var best = num(read('best', 0)), runs = 0;
+
+    /* ---- 1. the chip, in the topbar beside the title ---- */
+    var chip = document.createElement('span');
+    chip.className = 'fb-best';
+    function paintChip(isNew){
+      chip.innerHTML = '<i>BEST</i> <b>' + fmt(best) + '</b>';
+      chip.classList.toggle('is-new', !!isNew);
+      chip.hidden = !best;
+    }
+    paintChip(false);
+    var title = document.querySelector('.topbar .title, .topbar h1, header .title');
+    if(title && title.parentNode) title.parentNode.insertBefore(chip, title.nextSibling);
+
+    /* ---- 2. the run-over line ---- */
+    var over = $('overOverlay'), card = $('overCard'), scoreEl = $('oScore');
+    if(!over || !card || !scoreEl) return;       // not a chassis run-over card: do nothing
+    var line = document.createElement('p');
+    line.className = 'fb-runline';
+    var retry = $('retryBtn');
+    if(retry && retry.parentNode) retry.parentNode.insertBefore(line, retry);
+    else card.appendChild(line);
+
+    var shown = false;
+    function onShow(){
+      var score = num(scoreEl.textContent);
+      runs++;
+      var isNew = score > best, gap = best - score;
+      if(isNew){
+        var by = score - best;
+        best = score; save('best', best);
+        line.innerHTML = '<span class="go">NEW BEST · +' + fmt(by) + '</span>' +
+                         '<small>run ' + runs + ' this session</small>';
+      } else if(best > 0){
+        line.innerHTML = '<span class="gap">' + fmt(gap) + ' short of your best</span>' +
+                         '<small>best ' + fmt(best) + ' · run ' + runs + ' this session</small>';
+      } else {
+        best = score; save('best', best);
+        line.innerHTML = '<span class="go">First run banked</span>' +
+                         '<small>beat ' + fmt(best) + ' next time</small>';
+      }
+      paintChip(isNew);
+    }
+
+    new MutationObserver(function(){
+      var on = over.classList.contains('show');
+      if(on && !shown){ shown = true; onShow(); }
+      else if(!on){ shown = false; }
+    }).observe(over, { attributes:true, attributeFilter:['class'] });
+
+    /* ---- 3. one-key replay, and the focus trap it exposed ------------------
+       Closing a dialog returns focus to the button that opened it — correct
+       accessibility, and the chassis does it. But a focused <button> then eats
+       ENTER and SPACE, so mid-game those keys re-open HOW TO PLAY instead of
+       playing: Space IS the fire key in several games, and this layer had just
+       taught players to press Enter between runs, which made a latent bug easy
+       to hit (Founder, 2026-09-25, seen on a round clear).
+
+       So: Enter/Space replay when the run-over card is up; they are left alone
+       while ANY other dialog is open, because its buttons must still work; and
+       otherwise the focused control is blurred and the key swallowed, so game
+       keys can never operate the chrome. Capture phase, because this has to run
+       before the button's own activation. */
+    var anyDialog = function(){ return !!document.querySelector('.overlay.show, .sheet.show'); };
+    addEventListener('keydown', function(e){
+      if(e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      if(over.classList.contains('show')){
+        e.preventDefault();
+        if(retry) retry.click();
+        return;
+      }
+      if(anyDialog()) return;                       // another dialog owns the keyboard
+      var a = document.activeElement;
+      if(a && a !== document.body && /^(BUTTON|A|SUMMARY)$/.test(a.tagName)){
+        a.blur();
+        e.preventDefault();
+      }
+    }, true);
+  }catch(e){ /* stickiness must never break a game */ }
+})();
+</script>
+<script id="fb-outro" data-fb-board="leaderboard_rush.csv">
+/* ==========================================================================
+   FinnBots OUTRO LAYER — the ending screen.
+   Founder, 2026-10-02, verbatim: "there need to be a cool ending screen to
+   games not just they end or game over".
+
+   SOURCE OF TRUTH. Injected by apply-outro.js as <script id="fb-outro">
+   just before </body>, which is AFTER the engine and after the stickiness and
+   seed layers, so everything it decorates already exists when it binds.
+
+   WHAT WAS WRONG. The chassis run-over card is a receipt: "RUN OVER", a score,
+   a time, a retry button — the same card whether the player cleared the final
+   round or walked into the first enemy. The number arrives instantly, which
+   makes it information rather than a reward, and it sits beside nothing, so a
+   great run and a terrible one feel identical. An arcade ending has four beats
+   and we shipped none of them.
+
+   THE FOUR BEATS, and why each one earns its place:
+
+     1. VERDICT — winning must not look like dying. A cleared game gets a
+        different kicker, a lit hero and a flourish; a loss gets a warm,
+        non-punitive close. Free players are children (Founder, 2026-09-30):
+        losing is never made to sting, and nothing here sells anything.
+
+     2. TALLY — the score COUNTS UP, and the per-game stats the card already
+        prints become itemised rows that ratchet in above it. The count-up is
+        the oldest reward animation in the arcade and the single biggest thing
+        this card was missing. It is always skippable with a tap or a key: a
+        ceremony you cannot cut short is a toll, not a reward.
+
+     3. RANK — where does this run actually stand? The board CSV the scanner
+        publishes is served from the same origin as the game, so the ending can
+        read it and say "that would place you 7th today", with a rank title
+        earned against the REAL distribution rather than hand-set thresholds
+        that would mean something different in every game. 25 OIL buys a
+        leaderboard spot; this is where the purchase is finally delivered. Free
+        players see the same thing for nothing — the paid layer's output
+        flowing back to them as content, per MONETISATION-BRIEF.md.
+
+     4. HOOK — the stickiness layer's "1,240 short of your best" line and its
+        one-key replay stay exactly where they are. This layer frames them.
+
+   HOW IT IS BUILT, and the traps that shaped it:
+
+     - ADDITIVE AND PASSIVE. It never touches the engine, the wallet layer, the
+       network beyond the one same-origin CSV, or a wallet. It reads the DOM the
+       game already wrote.
+     - IT NEVER RETYPES THE CARD'S OWN NUMBERS. #oScore keeps its final text,
+       because the stickiness layer, the score memo and two gates read it. We
+       hide the plain readout with a clip rect and draw our own beside it.
+     - IT FIRES ON A RUN END, NEVER ON A START SCREEN. Bot Pong and Bot Merge
+       reuse #overOverlay/#overCard as their START card, so "the overlay became
+       visible" is not "the run ended". The guard is structural, not a list of
+       game names: a card that holds a visible control whose id starts with
+       "start", or whose score element is hidden by attribute, is a start card
+       and is left alone. Those two games therefore get NO ending screen from
+       this layer, which verify-outro.js reports per game as a named gap rather
+       than passing in silence.
+     - VISIBILITY IS DECIDED WITHOUT LAYOUT. Games reveal the overlay three
+       different ways (.show added, .hidden removed, both), so the check is
+       mechanism-agnostic and layout-free, which also lets a gate drive it
+       headlessly.
+     - IT MUST NEVER BREAK A GAME. Everything is inside one try/catch, every
+       animation degrades to its final state under prefers-reduced-motion, and
+       a missing hero image, a missing board or a failed fetch each remove one
+       beat and leave the rest.
+   ========================================================================== */
+(function(){
+  try{
+    var $ = function(id){ return document.getElementById(id); };
+    var overlay = $('overOverlay'), card = $('overCard'), scoreEl = $('oScore');
+    /* HARD dependencies. check-layers.js reads this guard to learn which ids
+       the layer cannot run without, and then checks them in the STATIC markup
+       of every game that carries the layer — so a game where this returns is a
+       FAILED gate, not a quiet no-op. [[installed-is-not-working]] */
+    if(!overlay || !card || !scoreEl) return;
+
+    var titleEl = $('overTitle');
+    var SCRIPT  = document.getElementById('fb-outro');
+    var BOARD   = (SCRIPT && SCRIPT.getAttribute('data-fb-board')) || '';
+    var reduced = false;
+    try{ reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
+
+    var fmt = function(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    var num = function(t){ var n = parseInt(String(t==null?'':t).replace(/[^0-9-]/g,''),10); return isFinite(n)?n:0; };
+    var has = function(el,c){ return !!(el && el.classList && el.classList.contains(c)); };
+    var attrHidden = function(el){
+      if(!el) return true;
+      if(el.hidden === true) return true;
+      if(el.getAttribute && el.getAttribute('hidden') !== null && el.getAttribute('hidden') !== undefined) return true;
+      return false;
+    };
+
+    /* ---- is the overlay on screen? ------------------------------------
+       Three conventions are in service (.show added, .hidden removed, both),
+       so decide by state rather than by mechanism, and never by layout: a
+       layout-based answer cannot be driven by a gate and is wrong anyway while
+       the overlay is mid-transition. */
+    function visible(el){
+      if(attrHidden(el)) return false;
+      if(has(el,'hidden')) return false;
+      if(has(el,'show')) return true;
+      if(el.style && el.style.display === 'none') return false;
+      /* no class convention on this game: fall back to layout where there is a
+         browser to ask, and to "not on screen" where there is not. */
+      return (typeof el.offsetParent !== 'undefined') ? el.offsetParent !== null : false;
+    }
+
+    /* ---- is this card a START card rather than a run end? --------------
+       Structural, not a list of game names. */
+    function isStartCard(){
+      if(attrHidden(scoreEl)) return true;                 // card is not presenting a score
+      var kids = card.querySelectorAll ? card.querySelectorAll('[id]') : [];
+      for(var i=0;i<kids.length;i++){
+        var id = kids[i].id || '';
+        if(/^start/i.test(id) && !attrHidden(kids[i])) return true;
+      }
+      return false;
+    }
+
+    /* ---- did the player WIN? -------------------------------------------
+       In order of authority: an explicit declaration from the engine, the
+       chassis's own .win class on the card, then the title the game wrote.
+       The vocabulary is OUR words (clear / complete / vault / champion); it
+       never names another game. */
+    function won(){
+      try{ if(window.FB_OUTRO && typeof window.FB_OUTRO.won === 'boolean') return window.FB_OUTRO.won; }catch(e){}
+      if(has(card,'win')) return true;
+      var t = (titleEl && titleEl.textContent || '').toUpperCase();
+      return /\b(CLEAR|CLEARED|COMPLETE|COMPLETED|WIN|WON|VAULT|CHAMPION|PERFECT)\b/.test(t);
+    }
+
+    /* ---- the tally rows ------------------------------------------------
+       Harvested from the stat line the card ALREADY prints, so every game gets
+       its own itemisation with no per-game code: BotFord's "Cave 7 · Beads 148
+       · Time 1:32" becomes three rows, and a game that only prints a time gets
+       one. Two shapes exist in the roster:
+         <p>Cave <b>7</b> · Beads <b>148</b></p>   label before each <b>
+         <p><b>Bay 1 · 0 kills</b></p>             one <b>, labels inside
+       The second is split on the separator and each piece read as
+       "<value> <label>". */
+    function harvest(){
+      var rows = [], ps = card.querySelectorAll ? card.querySelectorAll('p') : [];
+      for(var i=0;i<ps.length;i++){
+        var p = ps[i];
+        if(has(p,'fb-runline')) continue;                  // the stickiness line, not a stat
+        var bs = p.querySelectorAll ? p.querySelectorAll('b') : [];
+        if(!bs.length) continue;
+        var labelled = 0, out = [];
+        for(var j=0;j<bs.length;j++){
+          var b = bs[j], val = (b.textContent||'').trim();
+          if(!val) continue;
+          /* the text immediately before this <b> inside the <p> is its label */
+          var lab = '';
+          var prev = b.previousSibling;
+          while(prev && !lab){
+            if(prev.nodeType === 3) lab = (prev.textContent||'').trim();
+            prev = prev.previousSibling;
+          }
+          lab = lab.replace(/^[·•|,\s]+/,'').replace(/[:·•|,\s]+$/,'');
+          if(lab){ labelled++; out.push([lab, val]); }
+          else {
+            /* no label outside: the <b> carries "Bay 1 · 0 kills" itself */
+            var parts = val.split(/\s*[·•|]\s*/);
+            for(var k=0;k<parts.length;k++){
+              var piece = parts[k].trim(); if(!piece) continue;
+              var m = /^([0-9][0-9,.:]*)\s+(.+)$/.exec(piece) || /^(.+?)\s+([0-9][0-9,.:]*)$/.exec(piece);
+              if(m && /^[0-9]/.test(m[1])) out.push([m[2], m[1]]);
+              else if(m) out.push([m[1], m[2]]);
+              else out.push(['', piece]);
+            }
+          }
+        }
+        if(out.length){ rows = rows.concat(out); p.classList.add('fb-outro-src'); }
+      }
+      return rows;
+    }
+
+    /* ---- the rank the run earned ---------------------------------------
+       This is the beat the whole screen exists for, and it has to say
+       something TRUE in four different worlds — the first version only worked
+       in one of them.
+
+       Measured on the roster the day this layer was written: of eighteen
+       published boards, sixteen were HEADER ONLY and two held a single row.
+       The scanner only began recording rows at all on 2026-10-02
+       ([[the-score-never-reached-the-board]]), so "where do I rank" had no
+       answer on essentially every game, and the first draft of this layer
+       rendered that as a missing panel — a dead beat that looks exactly like a
+       broken one. That is the mistake this factory keeps paying for, so:
+
+         board with 5+ entries  the world placement and a percentile band.
+                                Calibrated per game by the real distribution,
+                                so no threshold is hand-set.
+         board with 1-4         the placement is real and the percentile is
+                                noise, so the placement is shown and the title
+                                comes from the player's OWN ladder.
+         board served, empty    say so plainly, and rank against your own runs.
+                                Stated as a fact, never as a prompt to spend:
+                                free players are children (MONETISATION-BRIEF).
+         no board served        the personal ladder alone.
+
+       The personal ladder is this layer's own small store (the last ten runs,
+       one key, localStorage) — never the stickiness layer's, so neither layer
+       can break the other. A free player with no wallet therefore always has a
+       real ranking to beat, which is the paid layer's content flowing back to
+       them for nothing. */
+    var BANDS = [
+      [0.00, 'FACTORY CHAMPION'],
+      [0.03, 'FACTORY LEGEND'],
+      [0.10, 'TURBO UNIT'],
+      [0.25, 'CHROME BOT'],
+      [0.50, 'BOLT HUNTER'],
+      [1.01, 'SCRAP RUNNER']
+    ];
+    function bandFor(frac){
+      for(var i=0;i<BANDS.length;i++) if(frac <= BANDS[i][0]) return BANDS[i][1];
+      return BANDS[BANDS.length-1][1];
+    }
+    var ord = function(n){
+      return n + (n%10===1&&n%100!==11?'st':n%10===2&&n%100!==12?'nd':n%10===3&&n%100!==13?'rd':'th');
+    };
+
+    /* this layer's own run history */
+    var HKEY = 'fb:' + ((location.hostname||'game').split('.')[0] || 'game') + ':outro:runs';
+    function loadRuns(){
+      try{ var v = JSON.parse(localStorage.getItem(HKEY) || '[]');
+           return (v instanceof Array ? v : []).filter(function(n){ return typeof n === 'number' && isFinite(n); })
+                                               .sort(function(a,b){ return b-a; }); }
+      catch(e){ return []; }
+    }
+    function saveRun(n){
+      try{ var v = loadRuns(); v.push(n); v.sort(function(a,b){ return b-a; });
+           localStorage.setItem(HKEY, JSON.stringify(v.slice(0,10))); }catch(e){}
+    }
+    /* the player's own ladder: title, a note, and how full the bar sits */
+    function personal(score, prior){
+      /* STANDARD COMPETITION RANKING: a place is one plus the number of runs
+         STRICTLY BETTER than this one, so equal scores share a rank. The first
+         version counted every run that this one did not beat, which made a
+         score EQUAL to your best read "2ND BEST RUN" — correct-looking on a
+         game whose scores are all different, and wrong on every game where
+         scores tie or cap. Bot Pong is first to 11: every single win ties at
+         11, so a perfect 11-0 would have been filed as your second-best run,
+         for ever. The world placement below deliberately does NOT do this —
+         tying someone already on the board leaves you behind them, because
+         they got there first. */
+      var better = 0;
+      for(var i=0;i<prior.length;i++) if(prior[i] > score) better++;
+      var place = better + 1;
+      var best = prior.length ? prior[0] : 0;
+      if(!prior.length) return { title:'ROOKIE BOT', note:'First run banked. Everything from here beats it.', frac: 0.5 };
+      if(place === 1){
+        return score > best
+          ? { title:'PERSONAL BEST', note:'Your best run yet — the old one was <b>' + fmt(best) + '</b>.', frac: 1 }
+          : { title:'MATCHED YOUR BEST', note:'Level with your best of <b>' + fmt(best) + '</b>.', frac: 1 };
+      }
+      return { title: ord(place).toUpperCase() + ' BEST RUN',
+               note: 'Your best is <b>' + fmt(best) + '</b> — <b>' + fmt(best - score) + '</b> to go.',
+               frac: best > 0 ? Math.max(0.04, score / best) : 0.5 };
+    }
+
+    /* parse the scanner's CSV. Its schema varies per game by design (BotFord
+       has `beads`, BubbleBot has `pops`), so read the HEADER and take the score
+       column by name — never by position. An empty board is a real, different
+       answer from an unreadable one, so this returns [] and null respectively. */
+    function scoresFrom(text){
+      var lines = String(text||'').trim().split(/\r?\n/);
+      if(!lines.length || !lines[0]) return null;
+      var head = lines[0].split(',').map(function(s){ return s.trim(); });
+      var col = head.indexOf('score_adjusted');
+      if(col < 0) col = head.indexOf('score_raw');
+      if(col < 0) col = head.indexOf('score');
+      if(col < 0) return null;                       // not a board we understand
+      var out = [];
+      for(var i=1;i<lines.length;i++){
+        var cells = lines[i].split(',');
+        if(cells.length <= col) continue;
+        var v = parseInt(String(cells[col]).replace(/[^0-9-]/g,''),10);
+        if(isFinite(v)) out.push(v);
+      }
+      return out.sort(function(a,b){ return b-a; }); // [] = a board with nobody on it
+    }
+
+    /* ---- build the block once, refill it on every run end --------------- */
+    var box = document.createElement('div');
+    box.className = 'fb-outro';
+    box.innerHTML =
+      '<span class="fb-outro-kicker"></span>' +
+      '<img class="fb-outro-hero" alt="" aria-hidden="true" hidden />' +
+      '<ul class="fb-outro-tally"></ul>' +
+      '<div class="fb-outro-total"><i>Final score</i><b>0</b></div>' +
+      '<div class="fb-outro-rank" hidden>' +
+        '<div class="fb-outro-title"><span></span><em></em></div>' +
+        '<div class="fb-outro-bar"><span></span></div>' +
+        '<small class="fb-outro-note"></small>' +
+      '</div>' +
+      '<span class="fb-outro-skip">tap to skip</span>';
+    var q = function(sel){ return box.querySelector(sel); };
+
+    /* Insert ABOVE the stickiness run-line and the buttons, BELOW the title and
+       the (now hidden) plain score — so the card reads top to bottom as
+       verdict, tally, rank, personal best, replay.
+
+       The anchor has to be walked UP to a direct child of the card first. The
+       first version compared `anchor.parentNode === card` and gave up when it
+       was not, which on every game with a .btnrow (BotFord, BOTRUN) is always:
+       the stickiness layer inserts its run-line before #retryBtn, so the line
+       lives INSIDE the button row. The whole ending screen then appended after
+       the buttons and the card read title, best, REPLAY BUTTON, tally, score.
+       It took a screenshot to see it, because order is the one property a
+       DOM-only gate had not been asked for — verify-outro now asserts it. */
+    function place(){
+      var up = function(node){
+        while(node && node.parentNode && node.parentNode !== card) node = node.parentNode;
+        return (node && node.parentNode === card) ? node : null;
+      };
+      /* Directly UNDER THE TITLE, so the card always reads verdict → tally →
+         rank → personal best → replay. Anchoring on the buttons instead put
+         the whole ending screen BELOW anything else the card happened to
+         carry: on Bot Merge the initials box and the device high-score list
+         sat between the title and the tally and broke the ending in half. The
+         chassis's own `.big` and stat line are hidden by this layer, so
+         landing above them changes nothing on the other games. */
+      var title = up(document.getElementById('overTitle')) || up(card.querySelector('h1,h2'));
+      if(title && title.nextSibling) card.insertBefore(box, title.nextSibling);
+      else if(title) card.appendChild(box);
+      else {
+        var anchor = up(card.querySelector('.fb-runline')) ||
+                     up(card.querySelector('.btnrow')) ||
+                     up(document.getElementById('retryBtn')) ||
+                     up(card.querySelector('button'));
+        if(anchor) card.insertBefore(box, anchor);
+        else card.appendChild(box);
+      }
+    }
+    place();
+
+    var hero = q('.fb-outro-hero');
+    /* The hero is the real Bot 106 PNG every game already ships (Founder,
+       2026-09-25). Shown only once the browser confirms it decoded, so a game
+       without the asset simply has no hero rather than a broken image. */
+    try{
+      hero.addEventListener('load', function(){ hero.hidden = false; });
+      hero.addEventListener('error', function(){ hero.hidden = true; });
+      hero.src = 'assets/hero/bot-106.png';
+    }catch(e){}
+
+    /* ---- the count-up ---------------------------------------------------- */
+    var raf = (window.requestAnimationFrame || function(f){ return setTimeout(function(){ f(Date.now()); }, 16); });
+    var timer = null, settle = null, target = 0;
+    function land(){
+      if(timer){ clearTimeout(timer); timer = null; }
+      box.classList.remove('fb-outro-counting');
+      q('.fb-outro-total b').textContent = fmt(target);
+    }
+    function countTo(n){
+      target = n;
+      if(reduced || n <= 0){ land(); return; }
+      box.classList.add('fb-outro-counting');
+      var DUR = Math.min(1400, 420 + Math.log10(Math.max(10,n)) * 220), t0 = Date.now();
+      (function tick(){
+        if(!box.classList.contains('fb-outro-counting')) return;    // skipped
+        var p = Math.min(1, (Date.now() - t0) / DUR);
+        var eased = 1 - Math.pow(1 - p, 3);
+        q('.fb-outro-total b').textContent = fmt(Math.round(n * eased));
+        if(p >= 1){ land(); return; }
+        timer = setTimeout(tick, 32);
+      })();
+    }
+
+    /* ---- the rank beat --------------------------------------------------- */
+    var MODE = '';
+    function paintRank(score){
+      var rank = q('.fb-outro-rank');
+      var prior = loadRuns();                        // BEFORE this run is added
+      saveRun(score);
+      var me = personal(score, prior);
+
+      function paint(title, right, note, frac){
+        rank.hidden = false;
+        q('.fb-outro-title span').textContent = title;
+        q('.fb-outro-title em').textContent = right || '';
+        q('.fb-outro-note').innerHTML = note;
+        var fill = q('.fb-outro-bar span');
+        var pct = Math.max(4, Math.min(100, Math.round(frac * 100)));
+        if(reduced) fill.style.width = pct + '%';
+        else raf(function(){ fill.style.width = pct + '%'; });
+      }
+
+      var done = function(scores){
+        if(scores && scores.length >= 5){
+          var beat = 0;
+          for(var i=0;i<scores.length;i++){ if(score > scores[i]) break; beat++; }
+          var place = beat + 1, total = scores.length + 1, frac = (place - 1) / total;
+          MODE = 'world';
+          paint(bandFor(frac), 'top ' + Math.max(1, Math.round(frac*100)) + '%',
+                place === 1 ? 'That is the <b>best run on the board</b>.'
+                            : 'That run would place <b>' + ord(place) + '</b> of ' + total + ' on the board.',
+                1 - frac);
+        } else if(scores && scores.length){
+          var b2 = 0;
+          for(var j=0;j<scores.length;j++){ if(score > scores[j]) break; b2++; }
+          MODE = 'thin';
+          paint(me.title, '', 'That run would place <b>' + ord(b2 + 1) + '</b> of ' +
+                (scores.length + 1) + ' on the board. ' + me.note, me.frac);
+        } else if(scores){
+          /* a board is published and nobody is on it. Say it plainly: a fact,
+             with no call to action — this screen is seen by children. */
+          MODE = 'empty';
+          paint(me.title, '', 'Nobody has banked a score on this board yet. ' + me.note, me.frac);
+        } else {
+          MODE = 'personal';
+          paint(me.title, '', me.note, me.frac);
+        }
+      };
+
+      if(!BOARD){ done(null); return; }
+      try{
+        fetch(BOARD, { cache:'no-store' })
+          .then(function(r){ return r.ok ? r.text() : null; })
+          .then(function(t){ done(t == null ? null : scoresFrom(t)); })
+          .catch(function(){ done(null); });
+      }catch(e){ done(null); }
+    }
+
+    /* ---- the win flourish ------------------------------------------------ */
+    function sparks(){
+      if(reduced) return;
+      var hold = document.createElement('div');
+      hold.className = 'fb-outro-sparks'; hold.setAttribute('aria-hidden','true');
+      var cols = ['#f2a03d','#ffd9a0','#9be7d0','#fff'];
+      for(var i=0;i<10;i++){
+        var s = document.createElement('i');
+        s.style.left = (4 + i*10 + (i%3)*3) + '%';
+        s.style.background = cols[i % cols.length];
+        s.style.animationDelay = (i * 55) + 'ms';
+        hold.appendChild(s);
+      }
+      card.appendChild(hold);
+      setTimeout(function(){ try{ hold.remove ? hold.remove() : hold.parentNode.removeChild(hold); }catch(e){} }, 2200);
+    }
+
+    /* ---- run it ----------------------------------------------------------- */
+    function show(){
+      /* THE CARD MAY HAVE BEEN REBUILT. BOTRUN composes its run-over card at
+         run end with `overCard.innerHTML = '<h2 id="overTitle">TIME UP</h2>…'`
+         and THEN reveals it, which destroys this layer's block and leaves the
+         nodes we cached pointing at detached elements. The Founder's screenshot
+         was the result: a bare "TIME UP" and a retry button, with no score at
+         all — because our tally was gone AND our CSS was still hiding the
+         card's own `.big` readout. Worse than before the layer existed.
+         So: re-resolve what we read, and re-attach before we render. */
+      scoreEl = $('oScore')    || scoreEl;
+      titleEl = $('overTitle') || titleEl;
+      if(box.parentNode !== card) place();
+
+      var score = num(scoreEl.textContent), win = won();
+      /* and only now may the card's own score be hidden — this class is
+         exactly "make broken look different from working", so the layer must
+         never suppress what the game already shows unless its replacement is
+         really on screen. */
+      if(box.parentNode === card) document.body.classList.add('fb-outro-on');
+      box.classList.remove('fb-outro-win','fb-outro-end');
+      box.classList.add(win ? 'fb-outro-win' : 'fb-outro-end');
+      q('.fb-outro-kicker').textContent = win ? 'Shift complete · Bot 106 made it out'
+                                              : 'Shift ended · Bot 106 powers down';
+      var rows = harvest(), ul = q('.fb-outro-tally');
+      ul.innerHTML = '';
+      for(var i=0;i<rows.length;i++){
+        var li = document.createElement('li');
+        li.innerHTML = '<i></i><b></b>';
+        li.firstChild.textContent = rows[i][0];
+        li.lastChild.textContent  = rows[i][1];
+        li.style.animationDelay = (reduced ? 0 : 60 + i*85) + 'ms';
+        ul.appendChild(li);
+      }
+      countTo(score);
+      paintRank(score);
+      if(win) sparks();
+      box.hidden = false;
+      /* The card grew: a landscape phone may now need to scroll to the retry
+         button, and the device layer cannot know that. Nudge it into view. */
+      settle = setTimeout(function(){
+        try{ var b = document.getElementById('retryBtn') || card.querySelector('button');
+             if(b && b.scrollIntoView) b.scrollIntoView({ block:'nearest' }); }catch(e){}
+      }, reduced ? 0 : 1500);
+    }
+
+    function hide(){
+      box.hidden = true;
+      document.body.classList.remove('fb-outro-on');
+      if(settle){ clearTimeout(settle); settle = null; }
+      land();
+    }
+    box.hidden = true;
+
+    /* skipping the ceremony: any tap or key lands the tally at once */
+    var skip = function(){ if(box.classList.contains('fb-outro-counting')) land(); };
+    try{
+      box.addEventListener('click', skip);
+      card.addEventListener('click', skip);
+      addEventListener('keydown', skip, true);
+    }catch(e){}
+
+    /* The overlay's reveal is a class or attribute change on the overlay (and on
+       mrbot, on the card). Watch both, and re-ask the question rather than
+       trusting which class moved. */
+    var on = false;
+    function evaluate(){
+      var live = visible(overlay) && !attrHidden(card) && !isStartCard();
+      if(live && !on){ on = true; show(); }
+      else if(!live && on){ on = false; hide(); }
+    }
+    try{
+      var mo = new MutationObserver(evaluate);
+      mo.observe(overlay, { attributes:true, attributeFilter:['class','style','hidden'] });
+      mo.observe(card,    { attributes:true, attributeFilter:['class','style','hidden'] });
+      /* A game that rebuilds the card AFTER revealing it would tear the ending
+         screen out from under a player who is looking at it. Watch the card's
+         own children and put it back. Re-inserting fires this observer again,
+         and the guard below makes that pass a no-op, so it cannot loop. */
+      new MutationObserver(function(){
+        if(on && box.parentNode !== card){ place(); show(); }
+      }).observe(card, { childList:true });
+    }catch(e){}
+    /* The chassis writes the score and THEN adds .show, so the observer is
+       enough; this one call covers a game that was already showing the card
+       when the layer bound (a reload onto a finished run). */
+    evaluate();
+
+    /* exposed for verify-outro.js: a gate must be able to ask the layer what it
+       did, rather than infer it from pixels. Reading it changes nothing. */
+    window.FB_OUTRO_STATE = function(){
+      return { live:on,
+               /* ON SCREEN, not merely built. verify-outro's own self-test
+                  caught this gate passing a layer that assembled the entire
+                  ending screen and left it hidden — the same shape as a draw
+                  path that runs and paints nothing. */
+               visible: !box.hidden && box.parentNode === card,
+               won:box.classList.contains('fb-outro-win'),
+               total:q('.fb-outro-total b').textContent,
+               rows:box.querySelectorAll('.fb-outro-tally li').length,
+               rank:!q('.fb-outro-rank').hidden, mode:MODE,
+               rankTitle:q('.fb-outro-title span').textContent,
+               bar:(q('.fb-outro-bar span').style.width||''),
+               counting:box.classList.contains('fb-outro-counting') };
+    };
+  }catch(e){ /* an ending screen must never break a game */ }
+})();
+</script>
+</body>
+</html>
