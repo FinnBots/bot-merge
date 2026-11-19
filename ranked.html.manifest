@@ -1,8 +1,8 @@
 file=ranked.html
-sha256=dfc5b571fd2078d1e753e8874bc44d3cdfdf70de2c522a2483e55e57ce4476a7
-bytes=13910
+sha256=03a22681dc3ff2357429042986058a8f1e48fc9a503f8546ec61b16dea6a0f2b
+bytes=14182
 test_mode=false
 prod_mint_count=0
 prod_treasury_count=0
 marker=
-generated=2026-11-19T14:40:48Z
+generated=2026-11-19T17:30:41Z
